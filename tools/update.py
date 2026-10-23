@@ -14,7 +14,8 @@ from parse_kalender import parse, zeit
 
 AUSSCHLUSS_CODES = {'KADETTEN'}          # Jugend/Kadetten gehören nicht in die App
 BEKANNTE_ORTE = {'Amel','Büllingen','Burg-Reuland','Eupen','Kelmis','Lontzen','Sankt Vith','Amay','Seraing','Juribise',
-                 'Francochamps','Aywaille','Raeren','Sektor Nord','Sektor Süd','Operationeller','Sonderteam','Waremme','Andere'}
+                 'Francochamps','Aywaille','Raeren','Sektor Nord','Sektor Süd','Operationeller','Sonderteam','Waremme','Andere',
+                 'Multidisziplinär','HEMECO','Walhorn auf L3','FW-Schleiden','Hydro','Goldener Morgen'}
 
 def key(d, v, t):
     return f"{d}|{zeit(v or '')}|{re.sub(r'[^a-z0-9]', '', (t or '').lower())[:40]}"
@@ -45,12 +46,15 @@ def build(raw):
     out.sort(key=lambda e: (e['d'], zeit(e.get('v') or ''), e['t']))
     return out, seen
 
-def pruefen(ev, alt):
+def pruefen(ev, alt, neu):
+    """Fehler prüfen alle Termine; Hinweise nur für neue oder geänderte Termine (sonst jeden Tag dieselben)."""
     fehler, hinweise = [], []
+    neu_ids = {id(e) for e in neu}
     for e in ev:
         try: datetime.date.fromisoformat(e['d'])
         except Exception: fehler.append(f"Ungültiges Datum: {e}")
         if not e['t'].strip(): fehler.append(f"Termin ohne Titel am {e['d']}")
+        if id(e) not in neu_ids: continue
         if e['c'] == 'L' and not e.get('md'): hinweise.append(f"Laufbahntermin ohne Modul: {e['d']} {e['t']} → in der App „Modul noch nicht zugeordnet“")
         if e.get('o') and e['o'] not in BEKANNTE_ORTE: hinweise.append(f"Unbekannter Ort „{e['o']}“: {e['d']} {e['t']}")
     if alt:
@@ -70,8 +74,8 @@ def main():
     ev, seen = build(raw)
     pfad = os.path.join(ROOT, 'termine.json')
     alt = json.load(open(pfad, encoding='utf-8'))['termine'] if os.path.exists(pfad) else []
-    fehler, hinweise = pruefen(ev, alt)
     neu, weg = diff(alt, ev)
+    fehler, hinweise = pruefen(ev, alt, neu)
     heute = datetime.date.today().isoformat()
     b = [f"# Abgleich Mein Weg – {heute}", f"Gelesene Blätter: {', '.join(seen)}", f"Termine: {len(ev)} (vorher {len(alt)})",
          f"Neu oder geändert: {len(neu)}", f"Entfallen oder geändert: {len(weg)}", '']
