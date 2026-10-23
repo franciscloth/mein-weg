@@ -1,0 +1,49 @@
+# Veröffentlicht „Mein Weg“ auf GitHub Pages – aber nur, wenn alle Prüfungen bestehen.
+# Voraussetzung (einmalig): Settings → Pages → Source: „GitHub Actions“.
+# Veröffentlicht werden ausschließlich index.html und termine.json (nicht der Ordner tools/).
+name: Prüfen und veröffentlichen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regressionstests (Abgleich, Veröffentlichungsprüfung)
+        run: python -W ignore -m unittest discover -s tools/tests -v
+      - name: Veröffentlichungsprüfung (JSON = HTML, Datenschutz, Skript)
+        run: python tools/pruefe_veroeffentlichung.py
+      - name: Nur öffentliche Dateien zusammenstellen
+        run: |
+          mkdir _site
+          cp index.html termine.json _site/
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  veroeffentlichen:
+    needs: pruefen
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

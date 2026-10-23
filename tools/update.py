@@ -6,7 +6,7 @@ Aufruf:
   python3 tools/update.py ROHTEXT.txt --dry-run  → nur Bericht
 Exit-Codes: 0 = Änderungen, gültig | 3 = keine Änderungen | 2 = Prüfung fehlgeschlagen (nicht veröffentlichen)
 """
-import json, re, sys, os, datetime, difflib
+import json, re, sys, os, datetime
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
@@ -46,51 +46,155 @@ def build(raw):
     out.sort(key=lambda e: (e['d'], zeit(e.get('v') or ''), e['t']))
     return out, seen
 
-def pruefen(ev, alt, neu):
-    """Fehler prüfen alle Termine; Hinweise nur für neue oder geänderte Termine (sonst jeden Tag dieselben)."""
+# Felder, die in der App sichtbar sind oder die Zuordnung bestimmen
+FELDER = ['d', 'v', 'b', 't', 'o', 'c', 'k', 'md', 'sq', 'gp', 'n', 'x', 'h']
+FELDNAMEN = {'d': 'Datum', 'v': 'Beginn', 'b': 'Ende', 't': 'Titel', 'o': 'Ort', 'c': 'Kategorie', 'k': 'Brevet',
+             'md': 'Modul', 'sq': 'Sequenz', 'gp': 'Gruppe', 'n': 'Kursnummer', 'x': 'Status (unbestätigt)', 'h': 'Stunden'}
+MIN_TERMINE = 50
+
+def norm(v):
+    if v is None or v == '' or v == []: return None
+    if isinstance(v, str): return v.strip()
+    return v
+
+def inhalt(e):
+    return tuple(json.dumps(norm(e.get(f)), ensure_ascii=False, sort_keys=True) for f in FELDER)
+
+def titel_norm(t):
+    return re.sub(r'[^a-z0-9äöüß]', '', (t or '').lower())
+
+def unterschiede(a, n):
+    return [f for f in FELDER if norm(a.get(f)) != norm(n.get(f))]
+
+def vergleiche(alt, neu):
+    """Ordnet alte und neue Termine einander zu.
+    1. Identischer Inhalt (alle Felder) → unverändert; Reihenfolge und doppelte Zeilen spielen keine Rolle.
+    2. Übrige Termine werden in mehreren Stufen als „derselbe Termin“ erkannt (siehe STUFEN) → geändert.
+    3. Was übrig bleibt → neu bzw. entfallen. Mehrere gleich gute Kandidaten → im Bericht als mehrdeutig."""
+    from collections import defaultdict
+    A = list(range(len(alt))); N = list(range(len(neu)))
+    pool = defaultdict(list)
+    for j in N: pool[inhalt(neu[j])].append(j)
+    rest_a, used_n = [], set()
+    for i in A:
+        lst = pool.get(inhalt(alt[i]))
+        if lst: used_n.add(lst.pop())
+        else: rest_a.append(i)
+    rest_n = [j for j in N if j not in used_n]
+    STUFEN = [
+        ('gleicher Tag, gleiche Art, gleicher Titel', lambda e: (e['d'], e['c'], titel_norm(e['t']))),
+        ('gleicher Tag, Beginn und Ort', lambda e: (e['d'], zeit(e.get('v') or ''), e.get('o') or '', e['c'])),
+        ('gleicher Titel, Beginn und Ort, anderer Tag', lambda e: (titel_norm(e['t']), zeit(e.get('v') or ''), e.get('o') or '', e['c'])),
+    ]
+    geaendert, mehrdeutig = [], []
+    for name, kf in STUFEN:
+        idx = defaultdict(list)
+        for j in rest_n: idx[kf(neu[j])].append(j)
+        noch_a = []
+        for i in rest_a:
+            kand = [j for j in idx.get(kf(alt[i]), []) if j in rest_n]
+            if not kand: noch_a.append(i); continue
+            kand.sort(key=lambda j: len(unterschiede(alt[i], neu[j])))
+            if len(kand) > 1 and len(unterschiede(alt[i], neu[kand[0]])) == len(unterschiede(alt[i], neu[kand[1]])):
+                mehrdeutig.append((alt[i], [neu[j] for j in kand]))
+            j = kand[0]; rest_n.remove(j)
+            geaendert.append((alt[i], neu[j], unterschiede(alt[i], neu[j]), name))
+        rest_a = noch_a
+    return {'neu': [neu[j] for j in rest_n], 'entfallen': [alt[i] for i in rest_a], 'geaendert': geaendert,
+            'mehrdeutig': mehrdeutig, 'unveraendert': len(used_n)}
+
+def pruefen(ev, alt, seen, erg, alt_blaetter=None):
+    """Fehler verhindern die Veröffentlichung. Hinweise gelten nur für neue oder geänderte Termine."""
     fehler, hinweise = [], []
-    neu_ids = {id(e) for e in neu}
+    if not any(re.fullmatch(r'\d{4}', s) for s in seen):
+        fehler.append('Kein Jahresblatt (z. B. „2026“) gefunden – Quelldatei leer, beschädigt oder unvollständig gelesen.')
+    if len([e for e in ev if e['c'] in ('W', 'U')]) == 0:
+        fehler.append('Keine Übungen und Weiterbildungen eingelesen – Quelldatei leer oder beschädigt.')
+    if len(ev) < MIN_TERMINE:
+        fehler.append(f'Nur {len(ev)} Termine eingelesen (Minimum {MIN_TERMINE}) – Quelldatei vermutlich unvollständig.')
     for e in ev:
         try: datetime.date.fromisoformat(e['d'])
-        except Exception: fehler.append(f"Ungültiges Datum: {e}")
-        if not e['t'].strip(): fehler.append(f"Termin ohne Titel am {e['d']}")
-        if id(e) not in neu_ids: continue
-        if e['c'] == 'L' and not e.get('md'): hinweise.append(f"Laufbahntermin ohne Modul: {e['d']} {e['t']} → in der App „Modul noch nicht zugeordnet“")
-        if e.get('o') and e['o'] not in BEKANNTE_ORTE: hinweise.append(f"Unbekannter Ort „{e['o']}“: {e['d']} {e['t']}")
+        except Exception: fehler.append(f"Ungültiges Datum: {e.get('d')} {e.get('t')}")
+        if not (e.get('t') or '').strip(): fehler.append(f"Termin ohne Titel am {e['d']}")
+        if e['c'] not in ('L', 'W', 'U'): fehler.append(f"Unbekannte Kategorie „{e['c']}“: {e['d']} {e['t']}")
+    if alt_blaetter:
+        fehlt = [b for b in alt_blaetter if b not in seen]
+        if fehlt: fehler.append(f"Diese Blätter wurden beim letzten Mal gelesen und fehlen jetzt: {', '.join(fehlt)}. Nicht veröffentlicht.")
     if alt:
         weg = len(alt) - len(ev)
-        if weg > max(25, len(alt) * 0.15):
+        if weg > max(20, len(alt) * 0.10):
             fehler.append(f"Es fehlen plötzlich {weg} von {len(alt)} Terminen – möglicherweise falsch eingelesen. Nicht veröffentlicht.")
+        for c, name in (('L', 'Laufbahn'), ('W', 'Weiterbildung'), ('U', 'Übungen')):
+            a = sum(1 for e in alt if e['c'] == c); n = sum(1 for e in ev if e['c'] == c)
+            if a - n > max(10, a * 0.25):
+                fehler.append(f"Bei „{name}“ fehlen plötzlich {a - n} von {a} Terminen. Nicht veröffentlicht.")
+        if len(ev) - len(alt) > max(25, len(alt) * 0.3):
+            hinweise.append(f"Ungewöhnlich viele neue Termine: {len(ev) - len(alt)} (vorher {len(alt)}). Bitte prüfen.")
+    betroffen = erg['neu'] + [g[1] for g in erg['geaendert']]
+    zaehl = {}
+    for e in ev: zaehl[inhalt(e)] = zaehl.get(inhalt(e), 0) + 1
+    for e in betroffen:
+        if e['c'] == 'L' and not e.get('md'): hinweise.append(f"Laufbahntermin ohne Modul: {e['d']} {e['t']} → in der App „Modul noch nicht zugeordnet“")
+        if e.get('o') and e['o'] not in BEKANNTE_ORTE: hinweise.append(f"Unbekannter Ort „{e['o']}“: {e['d']} {e['t']}")
+        if zaehl.get(inhalt(e), 0) > 1: hinweise.append(f"Mögliche Dublette (Zeile steht mehrfach in der Quelle): {e['d']} {e.get('v','')} {e['t']} ({e.get('o','')})")
     return fehler, hinweise
 
-def diff(alt, neu):
-    k = lambda e: (e['d'], zeit(e.get('v') or ''), e['t'], e.get('o', ''))
-    A, N = {k(e): e for e in alt}, {k(e): e for e in neu}
-    return [N[x] for x in N if x not in A], [A[x] for x in A if x not in N]
+def zeile(e):
+    return f"{e['d']} {e.get('v','') or ''} {e['t']} ({e.get('o','') or ''})".replace('  ', ' ')
 
-def main():
-    raw = open(sys.argv[1], encoding='utf-8').read()
-    dry = '--dry-run' in sys.argv
-    ev, seen = build(raw)
-    pfad = os.path.join(ROOT, 'termine.json')
-    alt = json.load(open(pfad, encoding='utf-8'))['termine'] if os.path.exists(pfad) else []
-    neu, weg = diff(alt, ev)
-    fehler, hinweise = pruefen(ev, alt, neu)
-    heute = datetime.date.today().isoformat()
-    b = [f"# Abgleich Mein Weg – {heute}", f"Gelesene Blätter: {', '.join(seen)}", f"Termine: {len(ev)} (vorher {len(alt)})",
-         f"Neu oder geändert: {len(neu)}", f"Entfallen oder geändert: {len(weg)}", '']
+def bericht(ev, alt, seen, erg, fehler, hinweise, heute):
+    dub = sum(c - 1 for c in __import__('collections').Counter(inhalt(e) for e in ev).values() if c > 1)
+    b = [f"# Abgleich Mein Weg – {heute}", f"Gelesene Blätter: {', '.join(seen) or '–'}",
+         f"Termine: {len(ev)} (vorher {len(alt)}) · unverändert {erg['unveraendert']} · neu {len(erg['neu'])} · geändert {len(erg['geaendert'])} · entfallen {len(erg['entfallen'])} · mehrfach vorhandene Zeilen {dub}", '']
     if fehler: b += ['## FEHLER – nicht veröffentlicht'] + [f'- {x}' for x in fehler] + ['']
-    if neu: b += ['## Neu / geändert'] + [f"- {e['d']} {e.get('v','')} {e['t']} ({e.get('o','')})" for e in neu[:60]] + ['']
-    if weg: b += ['## Entfallen / vorher'] + [f"- {e['d']} {e.get('v','')} {e['t']} ({e.get('o','')})" for e in weg[:60]] + ['']
+    if erg['neu']: b += ['## Neu'] + [f'- {zeile(e)}' for e in erg['neu'][:80]] + ['']
+    if erg['geaendert']:
+        b += ['## Geändert']
+        for a, n, fs, wie in erg['geaendert'][:80]:
+            det = '; '.join(f"{FELDNAMEN[f]}: {norm(a.get(f))!s} → {norm(n.get(f))!s}" for f in fs)
+            b.append(f'- {zeile(n)}: {det}')
+        b.append('')
+    if erg['entfallen']: b += ['## Entfallen'] + [f'- {zeile(e)}' for e in erg['entfallen'][:80]] + ['']
+    if erg['mehrdeutig']:
+        b += ['## Mehrdeutige Zuordnung (bitte prüfen)'] + [f"- {zeile(a)} → {len(k)} mögliche Termine: " + ' | '.join(zeile(x) for x in k) for a, k in erg['mehrdeutig']] + ['']
     if hinweise: b += ['## Hinweise zur Prüfung'] + [f'- {x}' for x in sorted(set(hinweise))] + ['']
-    open(os.path.join(HERE, 'bericht.md'), 'w', encoding='utf-8').write('\n'.join(b))
-    print('\n'.join(b))
-    if fehler: sys.exit(2)
-    if not neu and not weg: sys.exit(3)
+    return '\n'.join(b)
+
+def schreibe_atomar(pfad, text):
+    tmp = pfad + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f: f.write(text)
+    os.replace(tmp, pfad)
+
+def main(argv=None):
+    argv = argv if argv is not None else sys.argv[1:]
+    dry = '--dry-run' in argv
+    ziel = ROOT
+    if '--ziel' in argv: ziel = argv[argv.index('--ziel') + 1]
+    rohpfad = [a for a in argv if not a.startswith('--') and a != ziel][0]
+    heute = os.environ.get('MEINWEG_HEUTE') or datetime.date.today().isoformat()
+    pfad = os.path.join(ziel, 'termine.json')
+    altj = json.load(open(pfad, encoding='utf-8')) if os.path.exists(pfad) else {}
+    alt = altj.get('termine', []); alt_blaetter = altj.get('blaetter')
+    try:
+        raw = open(rohpfad, encoding='utf-8').read()
+        ev, seen = build(raw)
+    except Exception as ex:
+        ev, seen = [], []
+        fehler0 = [f'Quelldatei konnte nicht gelesen werden: {ex}']
+    else:
+        fehler0 = []
+    erg = vergleiche(alt, ev)
+    fehler, hinweise = pruefen(ev, alt, seen, erg, alt_blaetter)
+    fehler = fehler0 + fehler
+    text = bericht(ev, alt, seen, erg, fehler, hinweise, heute)
+    schreibe_atomar(os.path.join(ziel, 'tools', 'bericht.md') if os.path.isdir(os.path.join(ziel, 'tools')) else os.path.join(ziel, 'bericht.md'), text)
+    print(text)
+    if fehler: return 2
+    if not erg['neu'] and not erg['geaendert'] and not erg['entfallen'] and (alt_blaetter is not None or not alt): return 3
     if not dry:
-        json.dump({'stand': heute, 'quelle': 'Übungs-Weiterbildungskalender.xlsx (SharePoint HLZ DG), Stundenpläne NB01 und NM-02',
-                   'termine': ev}, open(pfad, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
-    sys.exit(0)
+        schreibe_atomar(pfad, json.dumps({'stand': heute, 'quelle': 'Übungs-Weiterbildungskalender.xlsx (SharePoint HLZ DG), Stundenpläne NB01 und NM-02',
+                                          'blaetter': seen, 'termine': ev}, ensure_ascii=False, separators=(',', ':')))
+    return 0
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
