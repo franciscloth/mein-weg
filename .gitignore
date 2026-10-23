@@ -1,0 +1,4 @@
+# Rohdaten aus SharePoint enthalten Ausbildernamen: niemals hochladen
+tools/raw*.txt
+tools/bericht.md
+__pycache__/

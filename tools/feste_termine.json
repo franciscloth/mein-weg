@@ -1,0 +1,272 @@
+[
+ {
+  "d": "2026-10-24",
+  "c": "L",
+  "k": "BO2",
+  "t": "Korporal (BO2) – Modul 1 Befehlsführung (Gruppe 1)",
+  "o": "Eupen",
+  "v": "08:30",
+  "b": "16:30",
+  "h": 8.0,
+  "x": false,
+  "n": "",
+  "md": [
+   1
+  ]
+ },
+ {
+  "d": "2026-10-27",
+  "c": "L",
+  "k": "BO2",
+  "t": "Korporal (BO2) – Modul 1 Befehlsführung (Gruppe 2)",
+  "o": "Eupen",
+  "v": "18:30",
+  "b": "21:30",
+  "h": 3.0,
+  "x": false,
+  "n": "",
+  "md": [
+   1
+  ]
+ },
+ {
+  "d": "2026-10-31",
+  "c": "L",
+  "k": "BO2",
+  "t": "Korporal (BO2) – Modul 1 Befehlsführung (Gruppe 2)",
+  "o": "Eupen",
+  "v": "08:30",
+  "b": "16:30",
+  "h": 8.0,
+  "x": false,
+  "n": "",
+  "md": [
+   1
+  ]
+ },
+ {
+  "d": "2026-12-14",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 1 Statut, Theorie",
+  "o": "Eupen",
+  "v": "18:00",
+  "b": "22:00",
+  "h": 4.0,
+  "x": false,
+  "n": "",
+  "md": [
+   1
+  ]
+ },
+ {
+  "d": "2026-12-16",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 1 Statut, Praxis",
+  "o": "Eupen",
+  "v": "08:00",
+  "b": "12:00",
+  "h": 4.0,
+  "x": false,
+  "n": "",
+  "md": [
+   1
+  ]
+ },
+ {
+  "d": "2026-12-18",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 1 Statut, Prüfung",
+  "o": "Eupen",
+  "v": "19:00",
+  "b": "21:00",
+  "h": 2.0,
+  "x": false,
+  "n": "",
+  "md": [
+   1
+  ]
+ },
+ {
+  "d": "2027-01-07",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 2 Arbeitssicherheit, Theorie",
+  "o": "Kelmis",
+  "v": "19:00",
+  "b": "22:00",
+  "h": 3.0,
+  "x": false,
+  "n": "",
+  "md": [
+   2
+  ]
+ },
+ {
+  "d": "2027-01-09",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 2 Arbeitssicherheit, Theorie und Praxis",
+  "o": "Kelmis",
+  "v": "09:00",
+  "b": "15:00",
+  "h": 6.0,
+  "x": false,
+  "n": "",
+  "md": [
+   2
+  ]
+ },
+ {
+  "d": "2027-01-14",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 2 Arbeitssicherheit, Prüfung",
+  "o": "Kelmis",
+  "v": "19:00",
+  "b": "21:00",
+  "h": 2.0,
+  "x": false,
+  "n": "",
+  "md": [
+   2
+  ]
+ },
+ {
+  "d": "2027-01-18",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 4 Führung bei Großeinsätzen, Theorie",
+  "o": "Lontzen",
+  "v": "18:00",
+  "b": "22:00",
+  "h": 4.0,
+  "x": false,
+  "n": "",
+  "md": [
+   4
+  ]
+ },
+ {
+  "d": "2027-01-21",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 4 Führung bei Großeinsätzen",
+  "o": "Büllingen",
+  "v": "18:00",
+  "b": "22:00",
+  "h": 4.0,
+  "x": false,
+  "n": "",
+  "md": [
+   4
+  ]
+ },
+ {
+  "d": "2027-01-26",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 4 Führung bei Großeinsätzen, Praxis",
+  "o": "Büllingen",
+  "v": "18:00",
+  "b": "22:00",
+  "h": 4.0,
+  "x": false,
+  "n": "",
+  "md": [
+   4
+  ]
+ },
+ {
+  "d": "2027-01-29",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 4 Führung bei Großeinsätzen, Prüfung",
+  "o": "Büllingen",
+  "v": "19:00",
+  "b": "21:00",
+  "h": 2.0,
+  "x": false,
+  "n": "",
+  "md": [
+   4
+  ]
+ },
+ {
+  "d": "2027-02-15",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 3 Führungskompetenzen, Theorie",
+  "o": "Kelmis",
+  "v": "18:00",
+  "b": "22:00",
+  "h": 4.0,
+  "x": false,
+  "n": "",
+  "md": [
+   3
+  ]
+ },
+ {
+  "d": "2027-02-17",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 3 Führungskompetenzen, Praxis",
+  "o": "Kelmis",
+  "v": "18:00",
+  "b": "22:00",
+  "h": 4.0,
+  "x": false,
+  "n": "",
+  "md": [
+   3
+  ]
+ },
+ {
+  "d": "2027-02-19",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 3 Führungskompetenzen, Praxis",
+  "o": "Kelmis",
+  "v": "18:00",
+  "b": "22:00",
+  "h": 4.0,
+  "x": false,
+  "n": "",
+  "md": [
+   3
+  ]
+ },
+ {
+  "d": "2027-02-24",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 3 Führungskompetenzen, Prüfung Theorie",
+  "o": "Kelmis",
+  "v": "19:00",
+  "b": "21:00",
+  "h": 2.0,
+  "x": false,
+  "n": "",
+  "md": [
+   3
+  ]
+ },
+ {
+  "d": "2027-02-26",
+  "c": "L",
+  "k": "NMO2",
+  "t": "Adjutant (NMO2) – Modul 3 Führungskompetenzen, Prüfung Praxis",
+  "o": "Kelmis",
+  "v": "18:00",
+  "b": "22:00",
+  "h": 4.0,
+  "x": false,
+  "n": "",
+  "md": [
+   3
+  ]
+ }
+]

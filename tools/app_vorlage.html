@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#F2F2F7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mein Weg">
+<meta name="format-detection" content="telephone=no">
+<title>Mein Weg · HLZ DG</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,__FAV__">
+<link rel="apple-touch-icon" href="data:image/png;base64,__ICON__">
+<style>
+
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --sep:#E5E5EA; --ink:#1C1C1E; --sub:#6C6C70; --fill:#E9E9EE;
+  --red:#B3261E; --red-l:#F1B9B4; --red-bg:#FCEDEC; --blue:#2B5A85; --blue-bg:#E8EFF7; --olive:#7A7062; --olive-bg:#F0ECE5;
+  --orange:#E39A4B; --tab:rgba(249,249,251,.92);
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#000;--card:#1C1C1E;--sep:#38383A;--ink:#F2F2F7;--sub:#98989F;--fill:#2C2C2E;--red:#FF6B5E;--red-l:#7A2E28;--red-bg:#3A1C1A;--blue:#7FB0E0;--blue-bg:#1B2A3A;--olive:#B5A994;--olive-bg:#2A2722;--tab:rgba(28,28,30,.92)}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+button,a,select,input,label{touch-action:manipulation}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.4}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.page{max-width:720px;margin:0 auto;padding:12px 16px calc(96px + env(safe-area-inset-bottom))}
+.view{display:none}.view.on{display:block}
+.eyebrow{font-size:13px;font-weight:600;color:var(--red);letter-spacing:.02em;margin-top:8px}
+h1{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:2px 0 14px}
+h2{font-size:22px;font-weight:700;margin:22px 4px 8px}
+.sec{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);margin:22px 16px 6px}
+.group{background:var(--card);border-radius:12px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:48px;width:100%;text-align:left;position:relative}
+.row+.row::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+.row .main{flex:1;min-width:0}
+.row .t{font-weight:600}
+.row .s{font-size:15px;color:var(--sub)}
+.chev{color:#C7C7CC;font-size:20px;flex-shrink:0}
+.pill{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:2px 7px;vertical-align:1px}
+.p-red{background:var(--red-bg);color:var(--red)} .p-blue{background:var(--blue-bg);color:var(--blue)} .p-grey{background:var(--fill);color:var(--sub)}
+/* segmented */
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;gap:2px}
+.seg button{flex:1;border-radius:7px;padding:7px 4px;font-size:14px;font-weight:600;color:var(--ink);min-height:44px;white-space:nowrap}
+.seg button[aria-pressed=true]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+/* grade scroller */
+.hs{display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 6px}
+.hs::-webkit-scrollbar{display:none}
+.gchip{background:var(--card);border-radius:22px;padding:9px 15px;font-weight:600;min-height:44px;border:1px solid var(--sep)}
+.gchip[aria-pressed=true]{background:var(--red);color:#fff;border-color:var(--red)}
+/* stepper */
+.stepper{display:flex;align-items:center;gap:0;margin:12px 4px 0}
+.stepper .dot{width:12px;height:12px;border-radius:50%;background:var(--fill);flex-shrink:0;border:2px solid var(--fill)}
+.stepper .ln{flex:1;height:2px;background:var(--fill)}
+.stepper .done{background:var(--sub);border-color:var(--sub)}
+.stepper .ln.done{background:var(--sub)}
+.stepper .me{background:var(--red);border-color:var(--red);width:16px;height:16px}
+.stepper .nx{background:var(--card);border-color:var(--red)}
+.stepcap{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin:6px 2px 0}
+/* hero card */
+.hero{background:var(--card);border-radius:16px;padding:18px 16px 6px;margin-top:14px}
+.hero .k{font-size:13px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.03em}
+.hero h3{font-size:28px;font-weight:800;margin:2px 0 4px;letter-spacing:-.01em}
+.facts{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px}
+.fact{background:var(--fill);border-radius:10px;padding:8px 12px;font-size:15px}
+.fact b{display:block;font-size:20px}
+.note{border-radius:10px;padding:10px 12px;font-size:15px;margin:4px 0 10px}
+.n-ok{background:var(--red-bg)} .n-plan{background:var(--olive-bg)} .n-req{background:var(--blue-bg)}
+details{border-top:.5px solid var(--sep)}
+summary{list-style:none;display:flex;align-items:center;justify-content:space-between;padding:13px 0;font-weight:600;cursor:pointer;min-height:48px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"›";color:#C7C7CC;font-size:22px;transform:rotate(90deg);transition:transform .2s}
+details[open] summary::after{transform:rotate(-90deg)}
+.mods{margin:0 0 12px;padding:0;list-style:none;font-size:15px}
+.mods li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:.5px solid var(--sep)}
+.mods li:last-child{border-bottom:0}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border-radius:12px;padding:14px;font-weight:700;min-height:50px;text-decoration:none}
+.btn-red{background:var(--red);color:#fff}
+.btn-tint{background:var(--red-bg);color:var(--red)}
+.btn-grey{background:var(--fill);color:var(--ink)}
+.bb{display:grid;gap:8px;margin:12px 0 10px}
+/* calendar */
+.search{display:flex;align-items:center;gap:8px;background:var(--fill);border-radius:10px;padding:0 10px;margin:10px 0}
+.search input{flex:1;border:0;background:none;font:inherit;font-size:17px;-webkit-appearance:none;padding:9px 0;color:var(--ink);min-height:44px;outline:none}
+.months{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none}
+.months::-webkit-scrollbar{display:none}
+.mon{flex-shrink:0;width:68px;background:var(--card);border-radius:12px;padding:8px;text-align:left;border:1.5px solid transparent}
+.mon[aria-pressed=true]{border-color:var(--ink)}
+.mon .m{font-size:13px;font-weight:700}
+.mon .bars{display:flex;gap:2px;align-items:flex-end;height:22px;margin-top:5px}
+.mon .bars span{flex:1;border-radius:2px}
+.c-L{background:var(--red)} .c-W{background:var(--blue)} .c-U{background:var(--olive)}
+.leg{display:flex;gap:14px;font-size:13px;color:var(--sub);margin:2px 4px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.tools{display:flex;gap:8px;margin:8px 0 0}
+.tools select,.tools button{flex:1;font:inherit;font-size:16px;-webkit-appearance:none;appearance:none;background:var(--card);color:var(--ink);border:0;border-radius:10px;padding:9px 10px;min-height:44px}
+.date{width:44px;flex-shrink:0;text-align:center;line-height:1.05}
+.date b{display:block;font-size:22px;font-weight:700}
+.date span{font-size:11px;color:var(--sub);text-transform:uppercase;font-weight:600}
+.bar{width:4px;align-self:stretch;border-radius:2px;flex-shrink:0}
+.ev.past{opacity:.5}
+.empty{text-align:center;color:var(--sub);padding:28px 0}
+/* overview */
+.stat{display:flex;gap:14px;align-items:center}
+.ring{width:56px;height:56px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.ring i{width:38px;height:38px;border-radius:50%;background:var(--card)}
+.bigr{font-size:24px;font-weight:800;color:var(--red);line-height:1.1}
+.agebar{display:flex;height:22px;border-radius:6px;overflow:hidden;font-size:12px;font-weight:700;margin-top:6px}
+.agebar span{display:flex;align-items:center;justify-content:center;color:#1C1C1E}
+.tl .bar{width:4px}
+.tl .b-solid{background:var(--red)}
+.tl .b-dash{background:repeating-linear-gradient(180deg,var(--red) 0 6px,transparent 6px 10px)}
+.tl .b-dot{background:repeating-linear-gradient(180deg,var(--blue) 0 3px,transparent 3px 7px)}
+.cta{background:#1C1C1E;color:#F2F2F7;border-radius:16px;padding:18px 16px;margin-top:22px}
+@media (prefers-color-scheme: dark){.cta{background:#2C2C2E}}
+.cta h3{font-size:22px;margin:0 0 6px}
+.cta .lang{background:rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:15px;margin-top:12px}
+.foot{font-size:12px;color:var(--sub);margin:18px 4px 0}
+/* tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:var(--tab);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep);display:flex;justify-content:center;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:20}
+.tabbar .in{display:flex;max-width:720px;width:100%}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:#8E8E93;min-height:48px;justify-content:center}
+.tabbar button[aria-current=page]{color:var(--red)}
+.tabbar svg{width:26px;height:26px}
+/* sheet */
+.scrim{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .25s;z-index:30}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:720px;margin:0 auto;background:var(--bg);border-radius:14px 14px 0 0;transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:31;max-height:88vh;max-height:88dvh;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px 16px calc(20px + env(safe-area-inset-bottom))}
+.sheet.on{transform:none}
+.grab{width:36px;height:5px;border-radius:3px;background:#C7C7CC;margin:4px auto 10px}
+.sheet h3{font-size:24px;font-weight:800;margin:4px 0 10px;letter-spacing:-.01em}
+.close{position:absolute;right:8px;top:6px;width:44px;height:44px;border-radius:50%;background:var(--fill);color:var(--sub);font-size:18px;font-weight:700}
+.code{font-family:ui-monospace,Menlo,monospace;font-weight:700;background:var(--fill);border-radius:6px;padding:2px 6px}
+ol.howto{margin:6px 0 0;padding-left:20px}
+ol.howto li{margin:6px 0}
+
+.brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--sub);letter-spacing:.02em;margin:4px 0 -2px}
+.brand img{width:30px;height:auto}
+.side-logo{display:none}
+.cards{display:block}
+.kal-main .sec:first-child{margin-top:14px}
+@media (min-width:760px){
+  .page{max-width:1000px;padding-left:24px;padding-right:24px}
+  .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+  .cards .hero{margin-top:14px}
+  .ueb{max-width:760px}
+  .sheet{top:50%;bottom:auto;left:50%;right:auto;width:560px;max-width:calc(100vw - 48px);border-radius:16px;transform:translate(-50%,-46%);opacity:0;pointer-events:none;transition:transform .25s,opacity .2s;max-height:84vh}
+  .sheet.on{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+  .grab{display:none}
+}
+@media (min-width:1000px){
+  .tabbar{top:0;right:auto;width:240px;flex-direction:column;justify-content:flex-start;align-items:stretch;border-top:0;border-right:.5px solid var(--sep);padding:24px 12px}
+  .tabbar .in{flex-direction:column;gap:4px}
+  .tabbar button{flex:none;flex-direction:row;justify-content:flex-start;gap:12px;font-size:16px;padding:10px 12px;border-radius:10px;min-height:44px}
+  .tabbar button[aria-current=page]{background:var(--red-bg)}
+  .tabbar svg{width:24px;height:24px}
+  .side-logo{display:block;padding:0 12px 24px}
+  .side-logo img{width:150px;height:auto;display:block}
+  .brand{display:none}
+  .page{margin-left:240px;max-width:1120px;padding:28px 40px 48px}
+  .kal{display:grid;grid-template-columns:340px minmax(0,1fr);gap:28px;align-items:start}
+  .kal-side{position:sticky;top:24px}
+  .kal-side .months{flex-wrap:wrap;overflow:visible}
+  .kal-side .mon{width:calc(25% - 6px)}
+  .kal-main .sec:first-child{margin-top:4px}
+  .toast{bottom:32px;left:calc(50% + 120px)}
+}
+@media (min-width:1000px) and (prefers-color-scheme: dark){.side-logo img{background:#fff;border-radius:12px;padding:10px}}
+.active{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 0}
+.active .cnt{font-size:14px;color:var(--sub);margin-right:4px}
+.fchip{background:var(--ink);color:var(--card);border-radius:18px;padding:6px 12px;font-size:14px;font-weight:600;min-height:44px}
+.freset{color:var(--red);font-weight:700;font-size:15px;padding:6px 8px;min-height:44px}
+.empty .freset{margin-top:8px}
+.stand{font-size:12px;color:var(--sub);margin:8px 2px 0}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:8px}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(28,28,30,.92);color:#fff;padding:10px 16px;border-radius:20px;font-size:15px;opacity:0;transition:opacity .2s;z-index:40;pointer-events:none}
+.toast.on{opacity:1}
+
+.pk{margin:12px 0 0}
+.pkh{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);margin:0 4px 6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card);border:1px solid var(--sep);border-radius:12px;padding:9px 12px;min-height:44px;font-size:15px;font-weight:600;text-align:left;white-space:normal;max-width:100%}
+.chip .n{font-weight:400;color:var(--sub)}
+.chip[aria-pressed=true]{background:var(--red);color:#fff;border-color:var(--red)}
+.chip[aria-pressed=true] .n{color:#fff;opacity:.85}
+.picked{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:12px;padding:6px 6px 6px 14px;margin-top:8px}
+.picked .main{flex:1;min-width:0}
+.picked .s{font-size:13px;color:var(--sub)}
+.picked .t{font-weight:700}
+.picked button{color:var(--red);font-weight:700;padding:8px 10px;min-height:44px;flex-shrink:0}
+.pknote{font-size:13px;color:var(--sub);margin:8px 4px 0}
+.modlbl{display:block;font-size:13px;font-weight:700;color:var(--red);margin-bottom:1px}
+.ctx{background:var(--card);border-radius:14px;padding:12px 16px;margin:14px 0 0}
+.ctx .k{font-size:13px;font-weight:700;color:var(--red)}
+.ctx h2{margin:2px 0 2px;font-size:22px}
+.ctx .s{font-size:15px;color:var(--sub)}
+.backl{color:var(--red);font-weight:700;min-height:44px;padding:0 4px 0 0;margin:-6px 0 2px;display:flex;align-items:center}
+.mh{font-size:15px;font-weight:700;margin:20px 4px 6px;color:var(--ink)}
+.mh .s{display:block;font-weight:400;font-size:13px;color:var(--sub)}
+.mrow{display:flex;align-items:center;gap:10px;padding:10px 16px;min-height:52px;position:relative}
+.mrow+.mrow::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+.mrow .main{flex:1;min-width:0}
+.mrow .t{font-weight:600;font-size:16px}
+.mrow .s{font-size:14px;color:var(--sub)}
+.sbtn{flex-shrink:0;background:var(--red-bg);color:var(--red);font-weight:700;font-size:14px;border-radius:10px;padding:8px 12px;min-height:44px;text-align:center}
+.empty p{margin:0 0 6px}
+.empty .bb{max-width:320px;margin:12px auto 0}
+.mrow .fr{font-style:italic;font-size:13px}
+
+.sheet{visibility:hidden;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .2s,visibility 0s linear .3s}
+.sheet.on{visibility:visible;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .2s,visibility 0s}
+.bigr{font-size:22px}
+.lead{font-size:19px;line-height:1.45;margin:-4px 4px 18px;color:var(--ink);max-width:620px}
+.btn-big{font-size:19px;min-height:56px;max-width:420px;border-radius:14px}
+.terms{font-size:14px;color:var(--sub);margin:18px 4px 0;max-width:640px}
+.bg .group{opacity:.97}
+.bg .sec{color:var(--sub)}
+.bg .bigr{font-size:19px;color:var(--ink)}
+
+</style>
+</head>
+<body>
+<div class="page">
+<div class="brand"><img src="data:image/png;base64,__EMB__" alt="" width="30" height="31"><span>Hilfeleistungszone DG</span></div>
+
+<!-- MEIN WEG -->
+<section class="view on" id="v-weg" aria-labelledby="t-weg">
+<div class="eyebrow">Laufbahn</div>
+<h1 id="t-weg">Mein Weg</h1>
+<p class="lead">Wähle deinen Dienstgrad. Dann siehst du deinen nächsten Schritt, das Brevet mit seinen Modulen und die Termine.</p>
+<div class="sec" style="margin-left:4px">Mein Dienstgrad heute</div>
+<div class="hs" id="grades" role="group" aria-label="Dienstgrad wählen"></div>
+<div id="weg"></div>
+<p class="terms"><b>Brevet:</b> die Ausbildung, die du für einen Dienstgrad brauchst. Sie besteht aus <b>Modulen</b>. Ein Modul hat mehrere Termine, im Stundenplan „Sequenzen“ genannt.</p>
+<div class="sec">So meldest du dich an</div>
+<div class="group" style="padding:12px 16px;font-size:15px"><ol class="howto">
+<li>Bei deinem Modul auf <b>Termine anzeigen</b> tippen oder im <b>Kalender</b> suchen.</li>
+<li>In der App <b>Magenta</b> nach dem Kurs suchen und dich anmelden.</li>
+<li>Fragen? Die Ausbildungszelle hilft dir weiter.</li></ol></div>
+<div class="cta">
+<h3>Deine Laufbahn planst du selbst</h3>
+<div style="font-size:15px">Ein deutschsprachiger Kurs findet nur statt, wenn mindestens <b>8 Kandidaten</b> zusammenkommen. Die Zone plant 1,5 Jahre im Voraus. Je früher du dich meldest, desto besser.</div>
+<div class="bb" id="ctaBox"></div>
+<div class="lang"><b>Auch auf Französisch oder Niederländisch möglich,</b> wenn du die Sprache gut genug beherrschst. Bitte vorher mit der Ausbildungszelle absprechen.</div>
+</div>
+<div class="foot">Termine: täglich aus dem Übungs- und Weiterbildungskalender und den Stundenplänen der HLZ DG übernommen; abgesagte Termine können noch enthalten sein. Module und Stunden laut Anlage 1 zum KE vom 18.11.2015, Weiterbildung laut Art. 150 KE 19.04.2014.</div>
+</section>
+
+<!-- KALENDER -->
+<section class="view" id="v-kal" aria-labelledby="t-kal">
+<div class="eyebrow">Ausbildung</div>
+<h1 id="t-kal">Kalender</h1>
+<div class="kal"><div class="kal-side">
+<div class="seg" id="cats" role="group" aria-label="Art der Termine"></div>
+<div id="pick"></div>
+<label class="search"><span aria-hidden="true" style="color:var(--sub)">⌕</span><input type="search" id="fq" placeholder="Kurs, Thema oder Ort suchen" aria-label="Suchen"></label>
+<div class="months" id="months"></div>
+<div class="leg"><span><i class="c-L"></i>Laufbahn</span><span><i class="c-W"></i>Weiterbildung</span><span><i class="c-U"></i>Übung</span></div>
+<div class="tools"><select id="fort" aria-label="Ort"><option value="">Alle Orte</option></select><button id="fpast" data-act="past" aria-pressed="false">Vergangene zeigen</button></div>
+<div class="active" id="active" aria-live="polite"></div>
+<div class="stand" id="stand"></div>
+</div>
+<div class="kal-main" id="kmain"><div id="ctx"></div><div id="list"></div></div></div>
+</section>
+
+
+</div>
+
+<nav class="tabbar" aria-label="Bereiche"><div class="side-logo"><img src="data:image/png;base64,__FULL__" alt="Hilfeleistungszone DG"></div><div class="in">
+<button data-act="tab" data-v="weg" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4v-5h4v-5h4V5h4"/></svg>Mein Weg</button>
+<button data-act="tab" data-v="kal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Kalender</button>
+</div></nav>
+
+<div class="scrim" id="scrim" data-act="close"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t" aria-hidden="true"><div class="grab"></div><button class="close" id="shx" data-act="close" aria-label="Schließen">✕</button><div id="shc"></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const CONFIG={ magenta:'https://apps.magentammt.com/start/', mail:'ausbildungszelle@hlzdg.be', heute:new Date() };
+let EVENTS=__DATA__;let STAND='__STAND__';
+
+const G=['Anwärter','Feuerwehrmann','Korporal','Sergeant','Adjutant','Leutnant','Kapitän','Major','Oberst'];
+// mods: [Bezeichnung, Stunden]; Modulnummer = Position in der Liste (laut KE 18.11.2015, Anlage 1)
+const BREVET={
+ 'Feuerwehrmann':{b:'NBO1',h:240,k:'NBO1',cond:'Brevet NBO1 bestehen und die Probezeit als Anwärter erfolgreich abschließen. Danach folgt die Ernennung zum Feuerwehrmann.',mods:[['Wohlbefinden – Allgemeines',29,'Bien-être – Général'],['Wohlbefinden – Erste Hilfe',23,'Bien-être – Premiers soins'],['Wohlbefinden – Atemschutz',20,'Bien-être – Protection respiratoire'],['Einsätze – Gefährliche Stoffe',12,'Réponse aux incidents – Substances dangereuses'],['Technische Hilfeleistung – Sturm und Bergung',25,'Secours techniques – Tempête et Salvage'],['Technische Hilfeleistung – Verkehr',23,'Secours techniques – Circulation'],['Technische Hilfeleistung – Wasser, Rettung, Tiere',22,'Secours techniques – Eau-Sauvetage-Animaux'],['Brandbekämpfung',86,"Lutte contre l'incendie"]],modNote:'Dazu kommen Prüfungsstunden. Alle Modulprüfungen müssen bestanden sein, bevor du im Einsatz eingesetzt wirst. Für die Heißausbildung in Modul 8 muss Modul 3 (Atemschutz) bestanden sein.',st:['plan','Kurs 2026/2027 läuft bis Mai 2027. Nächster Kurs 2027/2028 in Planung.']},
+ 'Korporal':{b:'BO2',h:30,k:'BO2',mods:[['Führung',8,'Commandement'],['Arbeitssicherheit',4,'Sécurité au travail'],['Coaching: mit Menschen arbeiten',18,"Coaching : travailler avec l'individu"]],st:['plan','Kurs 2026 endet im Oktober. Nächster Kurs in Planung.']},
+ 'Sergeant':{b:'NMO1',h:230,k:'NMO1',caf:'Zur Prüfung gehört der Kompetenztest für den mittleren Kader.',mods:[['Führung',12,'Commandement'],['Brandbekämpfung 1',24,"Lutte contre l'incendie 1"],['Brandbekämpfung 2',26,"Lutte contre l'incendie 2"],['Compartment Fire Behaviour Training (heiß)',38,'Compartment Fire Behaviour Training'],['Industriebrände',22],['Technische Hilfeleistung',32],['Gefährliche Stoffe 1',24],['Gefährliche Stoffe 2',28],['Integrierte Abschlussprüfung nach den Modulen 1–8',24]],st:['ok','Laufender Kurs: Modul 9 am 5. und 11. Dezember 2026. Nächster Kurs in Planung.']},
+ 'Adjutant':{b:'NMO2',h:40,k:'NMO2',mods:[['Statut',8],['Arbeitssicherheit',8],['Führungskompetenzen',12],['Führung bei Großeinsätzen',12]],st:['plan','Kurs vom 14. Dezember 2026 bis Februar 2027.']},
+ 'Leutnant':{b:'NOFF1',h:114,k:'NOFF1',extra:'Belgische Staatsangehörigkeit.',mods:[['Einsatztaktik: Fire Dynamics',53],['Einsatztaktik: Gefahrstoffeinsätze',32],['Krisenmanagement Stufe 1',24],['Coaching: eine Gruppe führen',5]],st:['plan','Offizierskurs auf Deutsch geplant für März bis April 2027.']},
+ 'Kapitän':{b:'NOFF2',h:102,k:'NOFF2',caf:'Zur Prüfung gehört der Kompetenztest für den höheren Kader.',mods:[['Einsatztaktik: Fire Dynamics',32],['Krisenmanagement Stufe 2',40],['Verwaltung',30]],st:['req','Kurs an der Feuerwehrschule auf Anfrage der Zone.']},
+ 'Major':{b:'OFF3',h:300,k:'OFF3',caf:'Wer heute Leutnant ist, besteht vorher den Kompetenztest für den höheren Kader.',mods:[['Verwaltungsrecht',30],['Krisenmanagement Stufe 3',40],['Finanzen',30],['Personalmanagement',30],['Qualitätsmanagement',30],['Strategie und Organisation',30],['Leadership',30],['Innovation und Veränderung',30],['Kommunikation',20],['Prozess- und Projektmanagement',30]],st:['req','Kurs an der Feuerwehrschule auf Anfrage der Zone.']},
+ 'Oberst':{b:'OFF4',h:220,k:'OFF4',extra:'Zum Kurs OFF4 wird man über Eingangstests mit Assessment zugelassen.',mods:[['Strategie und Leadership',40],['Kommunikation, Verhandlung, Statut',32],['Prozesse, Qualität und Risiken',32],['Diversität, Sicherheit und Wohlbefinden',16],['Praktikum mit Bericht',100]],st:['req','Kurs an der Feuerwehrschule auf Anfrage der Zone.']}
+};
+const NEXT={'Anwärter':['Feuerwehrmann'],'Feuerwehrmann':['Korporal','Sergeant'],'Korporal':['Sergeant'],'Sergeant':['Adjutant','Leutnant'],'Adjutant':['Leutnant'],'Leutnant':['Kapitän','Major'],'Kapitän':['Major','Oberst'],'Major':['Oberst'],'Oberst':[]};
+const KG={};Object.keys(BREVET).forEach(g=>KG[BREVET[g].k]=g);
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MON=['Jan.','Feb.','März','Apr.','Mai','Juni','Juli','Aug.','Sep.','Okt.','Nov.','Dez.'];
+const MONL=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const WD=['So','Mo','Di','Mi','Do','Fr','Sa'],WDL=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const today=new Date(CONFIG.heute.getFullYear(),CONFIG.heute.getMonth(),CONFIG.heute.getDate());
+const pd=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const fmtL=d=>WDL[d.getDay()]+', '+d.getDate()+'. '+MONL[d.getMonth()]+' '+d.getFullYear();
+const fmtT=s=>String(s||'').replace('h',':');
+const hasT=e=>e.v&&e.v!=='00:00';
+const isPast=e=>pd(e.d)<today;
+const CATN={L:'Laufbahn',W:'Weiterbildung',U:'Übung'};
+// Eingebettet (z. B. Vorschau in einer anderen App): E-Mail-Links in neuem Fenster öffnen, sonst blockiert der Rahmen sie.
+const EMBED=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+const mailA=(subj,label,cls)=>`<a class="btn ${cls}" href="mailto:${CONFIG.mail}?subject=${encodeURIComponent(subj)}"${EMBED?' target="_blank" rel="noopener"':''}>${label}</a>`;
+function prepEvents(){EVENTS.forEach((e,i)=>{e.i=i;if(!e.md)e.md=[]})}prepEvents();
+let grade=null; try{grade=localStorage.getItem('hlz_grad')}catch(e){}
+if(grade!==null&&!G.includes(grade)){grade=null;try{localStorage.removeItem('hlz_grad')}catch(e){}}
+
+// Modul-Hilfen
+function modName(k,m){const g=KG[k];if(!g)return '';const x=BREVET[g].mods[m-1];return x&&x[0]?x[0]:''}
+function modTitle(k,m){const n=modName(k,m);return 'Modul '+m+(n?': '+n:'')}
+function modLabel(e){if(!e.md.length)return 'Modul noch nicht zugeordnet';if(e.md.length>1)return 'Module '+e.md.join(' + ');return modTitle(e.k,e.md[0])}
+function shortT(e){let t=e.t.replace(/^(Grundausbildung NB01|Korporal(?: \(BO2\))?|Sergeant \(NMO1\)|Adjutant \(NMO2\)|Leutnant \(NOFF1\))\s*[–-]\s*/,'');t=t.replace(/^Module?\s+\d+(\s*\+\s*\d+)?\s*[:,]?\s*/,'');return t||e.sq||'Termin'}
+
+// Kopieren und Meldungen
+function copyText(s){const ok=()=>toast('Kursnummer '+s+' kopiert');if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(s).then(ok,()=>legacyCopy(s)?ok():toast('Bitte Nummer abschreiben: '+s))}else{legacyCopy(s)?ok():toast('Bitte Nummer abschreiben: '+s)}}
+function legacyCopy(s){try{const ta=document.createElement('textarea');ta.value=s;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.top='0';ta.style.opacity='0';ta.style.fontSize='16px';document.body.appendChild(ta);ta.focus();ta.setSelectionRange(0,s.length);const r=document.execCommand('copy');document.body.removeChild(ta);return r}catch(e){return false}}
+let toastT;function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),1800)}
+
+// Verlauf: Ansichten und Fenster bekommen je einen Eintrag, damit „Zurück“ die App nicht verlässt.
+const VIEWS=['weg','kal'];let curView='weg',sheetOpen=false,sheetPushed=false,pendingBack=false,pbT=null,afterBack=null,navFrom='';
+function hpush(st){try{history.pushState(st,'','#'+st.v);return true}catch(e){return false}}
+function hreplace(st){try{history.replaceState(st,'','#'+st.v)}catch(e){}}
+function show(v,push=true){
+  if(pendingBack){afterBack=()=>show(v,push);return}
+  if(!VIEWS.includes(v))v='weg';
+  const changed=v!==curView;curView=v;
+  document.querySelectorAll('.tabbar button').forEach(x=>{if(x.dataset.v===v)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current')});
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  if(push&&changed)hpush({v});
+  if(changed)window.scrollTo(0,0);
+}
+window.addEventListener('popstate',e=>{
+  if(pendingBack){pendingBack=false;clearTimeout(pbT);const f=afterBack;afterBack=null;if(f)f();return}
+  if(sheetOpen){closeSheet(true);return}
+  const st=e.state||{};const v=st.v||location.hash.slice(1)||'weg';
+  if(st.sheet)hreplace({v});
+  navFrom=(v==='kal'&&st.from)?st.from:'';
+  show(v,false);renderCtx();
+});
+
+// Detailfenster
+let lastFocus=null;
+function setInert(on){['.page','.tabbar'].forEach(s=>{const el=$(s);if(!el)return;if(on){el.setAttribute('inert','');el.setAttribute('aria-hidden','true')}else{el.removeAttribute('inert');el.removeAttribute('aria-hidden')}})}
+function focusables(){return [...$('#sheet').querySelectorAll('a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null||x===document.activeElement)}
+function openSheet(html){
+  if(pendingBack)return;
+  $('#shc').innerHTML=html;
+  if(!sheetOpen){lastFocus=document.activeElement;sheetPushed=hpush({v:curView,sheet:1})}
+  sheetOpen=true;document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';
+  const sh=$('#sheet');sh.classList.add('on');sh.removeAttribute('aria-hidden');$('#scrim').classList.add('on');sh.scrollTop=0;setInert(true);setTimeout(()=>$('#shx').focus({preventScroll:true}),50);
+}
+let closedAt=0;
+function hideSheet(){sheetOpen=false;closedAt=Date.now();if(pendingData){const j=pendingData;pendingData=null;setTimeout(()=>applyData(j),0)}document.documentElement.style.overflow='';document.body.style.overflow='';const sh=$('#sheet');sh.classList.remove('on');sh.setAttribute('aria-hidden','true');$('#scrim').classList.remove('on');setInert(false)}
+function closeSheet(fromPop){
+  if(!sheetOpen)return;hideSheet();
+  if(!fromPop&&sheetPushed){pendingBack=true;clearTimeout(pbT);pbT=setTimeout(()=>{if(pendingBack){pendingBack=false;const f=afterBack;afterBack=null;if(f)f()}},600);try{history.back()}catch(e){pendingBack=false}}
+  sheetPushed=false;
+  const lf=lastFocus;lastFocus=null;if(lf&&document.contains(lf)&&lf.focus){setTimeout(()=>lf.focus({preventScroll:true}),0)}
+}
+document.addEventListener('keydown',e=>{if(!sheetOpen)return;if(e.key==='Escape'){e.preventDefault();closeSheet();return}if(e.key==='Tab'){const f=focusables();if(!f.length)return;const first=f[0],last=f[f.length-1];if(e.shiftKey&&(document.activeElement===first||!$('#sheet').contains(document.activeElement))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(document.activeElement===last||!$('#sheet').contains(document.activeElement))){e.preventDefault();first.focus()}}});
+
+function evSheet(i){
+  const e=EVENTS[i],d=pd(e.d),past=isPast(e);
+  const time=hasT(e)?fmtT(e.v)+'–'+fmtT(e.b)+' Uhr':'Uhrzeit folgt';
+  const status=past?'vorbei':e.x?'noch nicht bestätigt':'bestätigt';
+  const row=(a,b)=>`<div class="row"><div class="main"><div class="s">${a}</div><div class="t">${b}</div></div></div>`;
+  let h=`<span class="pill ${e.c==='L'?'p-red':e.c==='W'?'p-blue':'p-grey'}">${CATN[e.c]}</span>${e.x?' <span class="pill p-grey">noch nicht bestätigt</span>':''}
+  <h3 id="sh-t">${esc(e.t)}</h3><div class="group">`;
+  if(e.c==='L'&&KG[e.k])h+=row('Brevet',esc(e.k+' – '+KG[e.k]))+row('Modul',esc(modLabel(e)))+(e.sq||e.gp?row('Einheit',esc([e.sq,e.gp].filter(Boolean).join(' · '))):'');
+  h+=row('Datum',fmtL(d))+row('Uhrzeit',time+(e.h?' · '+String(e.h).replace('.',',')+' h':''))+row('Ort',esc(e.o||'wird mitgeteilt'))+(e.n?row('Kursnummer',`<span class="code">${esc(e.n)}</span>`):'')+row('Status',status)+`</div>`;
+  if(e.x&&!past){h+=`<div class="sec">Anmeldung</div><div class="group" style="padding:12px 16px;font-size:15px">Dieser Termin steht noch nicht fest. Anmelden kannst du dich erst, wenn er bestätigt ist. Frag bei Bedarf bei der Ausbildungszelle nach.</div>`}
+  else if(e.c==='U'){h+=`<div class="sec">Anmeldung</div><div class="group" style="padding:12px 16px;font-size:15px">Wachübung, keine Anmeldung in Magenta. Infos bei deinem Wachleiter.</div>`}
+  else if(!past){
+    h+=`<div class="sec">So findest du den Kurs in Magenta</div><div class="group" style="padding:12px 16px;font-size:15px"><ol class="howto">
+      <li>Magenta öffnen und anmelden.</li>
+      <li>Im Kursangebot suchen nach ${e.n?`<span class="code">${esc(e.n)}</span>`:`<b>${esc(e.t)}</b>`}.</li>
+      <li>Den Termin vom <b>${d.getDate()}. ${MONL[d.getMonth()]}</b>${e.o?' in <b>'+esc(e.o)+'</b>':''} wählen und auf <b>Anmelden</b> tippen.</li></ol></div>
+     <div class="bb">${e.n?`<button class="btn btn-tint" data-act="copy" data-s="${esc(e.n)}">Kursnummer ${esc(e.n)} kopieren</button>`:''}<a class="btn btn-red" href="${CONFIG.magenta}" target="_blank" rel="noopener">Magenta öffnen ↗</a></div>`;
+  }
+  openSheet(h);
+}
+function counts(k,m){const l=EVENTS.filter(e=>e.k===k&&(!m||e.md.includes(m)));const up=l.filter(e=>!isPast(e)).length;return {up,all:l.length}}
+function modSheet(g){
+  const B=BREVET[g];
+  const rows=B.mods.map((m,j)=>{const n=j+1,c=counts(B.k,n);
+    const info=[m[1]?m[1]+' h':'',c.up?`${c.up} ${c.up===1?'kommender Termin':'kommende Termine'}`:c.all?'keine kommenden Termine':'keine Termine eingetragen'].filter(Boolean).join(' · ');
+    const code=(B.k==='NBO1'?'NB01':B.b)+'/'+String(n).padStart(2,'0');
+    return `<div class="mrow"><div class="main"><div class="t">${esc(modTitle(B.k,n))}</div>${m[2]?`<div class="s fr" lang="fr">${esc(code)} · ${esc(m[2])}</div>`:''}<div class="s">${info}</div></div>${c.all?`<button class="sbtn" data-act="mod" data-k="${B.k}" data-m="${n}" aria-label="Termine von Modul ${n} anzeigen">Termine anzeigen</button>`:''}</div>`}).join('');
+  const call=counts(B.k,0);
+  openSheet(`<span class="pill p-red">Brevet ${B.b}</span><h3 id="sh-t">${esc(g)}: ${B.h} Stunden</h3>
+  <div class="sec">Module laut Königlichem Erlass</div><div class="group">${rows}</div>${B.modNote?`<div class="pknote">${esc(B.modNote)}</div>`:''}
+  ${call.all?`<div class="bb"><button class="btn btn-grey" data-act="all" data-k="${B.k}">Alle Termine von ${B.b} ansehen</button></div>`:''}
+  <div class="sec">${B.cond?'Voraussetzungen':'Bedingungen für die Beförderung'}</div><div class="group" style="padding:12px 16px;font-size:15px">${B.cond?esc(B.cond):`Brevet ${B.b}, letzte Bewertung mindestens „genügend“, keine nicht gelöschte Disziplinarstrafe, Beförderungsprüfung bestanden.`}${B.caf?' '+esc(B.caf):''}${B.extra?' '+esc(B.extra):''}<div style="color:var(--sub);margin-top:6px">Die genauen Bedingungen stehen im jeweiligen Aufruf.</div></div>`);
+}
+
+// Terminzeilen
+function evRow(e,inModule){
+  const past=isPast(e),d=pd(e.d);
+  const time=hasT(e)?fmtT(e.v)+'–'+fmtT(e.b):'Uhrzeit folgt';
+  const lbl=(e.c==='L'&&!inModule)?`<span class="modlbl">${esc(e.k+' · '+modLabel(e))}</span>`:'';
+  const title=inModule?(e.md.length>1?'Module '+e.md.join(' + ')+': ':'')+shortT(e):e.t;
+  const sub=[time,e.o,past?'vorbei':''].filter(Boolean).join(' · ');
+  return `<button class="row ev${past?' past':''}" data-act="ev" data-i="${e.i}"><span class="bar c-${e.c}"></span><span class="date"><b>${d.getDate()}</b><span>${WD[d.getDay()]} ${MON[d.getMonth()]}</span></span><span class="main">${lbl}<span class="t" style="display:block">${esc(title)}${e.x?' <span class="pill p-grey">noch nicht bestätigt</span>':''}</span><span class="s">${esc(sub)}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
+}
+
+// Mein Weg
+function renderGrades(){
+  $('#grades').innerHTML=G.map(g=>`<button class="gchip" data-act="grade" data-g="${esc(g)}" aria-pressed="${g===grade}">${esc(g)}</button>`).join('');
+}
+function setGrade(g){
+  if(!G.includes(g))return;grade=g;try{localStorage.setItem('hlz_grad',g)}catch(e){}
+  $('#grades').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.g===g));
+  renderWeg();
+}
+function renderWeg(){
+  if(grade!==null&&!G.includes(grade))grade=null;
+  if(!grade){$('#weg').innerHTML=`<div class="group" style="padding:16px;margin-top:14px;color:var(--sub)">Wähle deinen Dienstgrad. Dann siehst du deinen nächsten Schritt, die Ausbildung dafür und die nächsten Termine.</div>`+wbCard();return}
+  const i=G.indexOf(grade),nx=NEXT[grade];
+  let st='<div class="stepper" aria-hidden="true">';
+  G.forEach((g,j)=>{if(j)st+=`<span class="ln ${j<=i?'done':''}"></span>`;st+=`<span class="dot ${j<i?'done':''} ${j===i?'me':''} ${nx.includes(g)?'nx':''}"></span>`});
+  st+=`</div><div class="stepcap"><span>Anwärter</span><span>Oberst</span></div>`;
+  let h=st+'<div class="cards">';
+  if(!nx.length)h+=`<div class="hero"><h3>Höchster Dienstgrad</h3><p style="color:var(--sub);margin:0 0 14px">Danke, dass du andere auf ihrem Weg begleitest.</p></div>`;
+  nx.forEach((g,n)=>{
+    const B=BREVET[g],up=EVENTS.filter(e=>e.k===B.k&&!isPast(e));
+    h+=`<div class="hero"><div class="k" ${n?'style="color:var(--sub)"':''}>${n?'Auch möglich':'Dein nächster Schritt'}</div><h3>${esc(g)}</h3>
+    <div class="facts"><div class="fact">Brevet<b>${B.b}</b></div><div class="fact">Ausbildung<b>${B.h} h</b></div><div class="fact">Module<b>${B.mods.length}</b></div></div>
+    <div class="note n-${B.st[0]}">${esc(B.st[1])}</div>
+    <div class="group" style="margin:0 -16px;border-radius:0">
+      <button class="row" data-act="modsheet" data-g="${esc(g)}"><span class="main"><span class="t" style="display:block">Module, Termine und Voraussetzungen</span><span class="s">Modul wählen und seine Termine anzeigen</span></span><span class="chev" aria-hidden="true">›</span></button>
+    </div>
+    ${up.length?`<div class="sec" style="margin-left:0">Nächste Termine</div><div class="group" style="margin:0 -16px;border-radius:0">${up.slice(0,3).map(e=>evRow(e,false)).join('')}<button class="row" data-act="all" data-k="${B.k}"><span class="main"><span class="t" style="color:var(--red)">Alle ${up.length} kommenden Termine nach Modul</span></span><span class="chev" aria-hidden="true">›</span></button></div>`:''}
+    <div class="bb">${mailA('Interesse: '+g+' (Brevet '+B.b+')','Interesse für '+esc(g)+' melden',n?'btn-grey':'btn-tint')}</div></div>`;
+  });
+  h+=wbCard()+'</div>';
+  $('#weg').innerHTML=h;
+}
+function wbCard(){return `<div class="hero"><div class="k">Auf jeder Stufe</div><h3>Weiterbildung</h3><p style="margin:0 0 4px">Pflicht für alle Einsatzkräfte: mindestens <b>120 Stunden Weiterbildung in fünf Jahren</b>. Stunden aus Brevet-Ausbildungen zählen mit.</p><div class="bb"><button class="btn btn-grey" data-act="wb">Weiterbildungen im Kalender</button></div></div>`}
+
+// Kalender
+const F={cat:'',br:'',mod:0,ort:'',q:'',past:false,month:''};
+function goCal(k,m){
+  // aus Mein Weg: Kalender auf Brevet (und Modul) stellen
+  F.cat='L';F.br=k;F.mod=m||0;F.q='';F.ort='';F.month='';F.past=false;$('#fq').value='';$('#fort').value='';syncPast();
+  navFrom=curView==='weg'?'weg':'';
+  const st={v:'kal',from:navFrom};
+  if(sheetOpen){hideSheet();sheetPushed=false;lastFocus=null;hreplace(st);show('kal',false)}else if(curView!=='kal'){show('kal',false);hpush(st)}else hreplace(st);
+  renderKal();
+  requestAnimationFrame(()=>{if(window.innerWidth<1000){const t=$('#kmain').getBoundingClientRect().top+window.scrollY-8;window.scrollTo(0,t)}const c=$('#ctx h2');if(c){c.setAttribute('tabindex','-1');c.focus({preventScroll:true})}});
+}
+function setCat(c){F.cat=c;if(c!=='L'){F.br='';F.mod=0}renderKal()}
+function base(e,o){o=o||{};const q=F.q.trim().toLowerCase();
+  return (F.past||o.past||!isPast(e))&&(!F.cat||e.c===F.cat)&&(!F.br||e.k===F.br)&&(o.noMod||!F.mod||e.md.includes(F.mod))&&(!F.ort||e.o===F.ort)&&(!q||(e.t+' '+e.o+' '+e.k+' '+e.n+' '+(e.c==='L'?modLabel(e):'')).toLowerCase().includes(q))&&(o.noMonth||!F.month||e.d.slice(0,7)===F.month)}
+const filtered=noMonth=>EVENTS.filter(e=>base(e,{noMonth}));
+function renderCats(){
+  $('#cats').innerHTML=[['','Alle'],['L','Laufbahn'],['W','Weiterbildung'],['U','Übungen']].map(c=>`<button data-act="cat" data-c="${c[0]}" aria-pressed="${F.cat===c[0]}">${c[1]}</button>`).join('');
+}
+function renderPick(){
+  if(F.cat!=='L'){$('#pick').innerHTML='';return}
+  let h='';
+  if(!F.br){
+    const brs=G.map(g=>BREVET[g]).filter(B=>B&&EVENTS.some(e=>e.k===B.k));
+    h=`<div class="pk"><div class="pkh">1. Brevet wählen</div><div class="chips">${brs.map(B=>{const n=EVENTS.filter(e=>e.k===B.k&&base(e,{noMonth:1})).length;return `<button class="chip" data-act="br" data-k="${B.k}" aria-pressed="false"><b>${B.b}</b> ${esc(KG[B.k])} <span class="n">(${n})</span></button>`}).join('')}</div><div class="pknote">Für Kapitän, Major und Oberst stehen keine Termine im Kalender. Diese Kurse organisiert die Feuerwehrschule auf Anfrage der Zone.</div></div>`;
+  } else {
+    const B=BREVET[KG[F.br]];
+    h=`<div class="picked"><div class="main"><div class="s">Brevet</div><div class="t">${B.b} · ${esc(KG[F.br])}</div></div><button data-act="brclear" aria-label="Anderes Brevet wählen">Ändern</button></div>`;
+    if(!F.mod){
+      const opts=B.mods.map((m,j)=>{const n=j+1,c=EVENTS.filter(e=>e.k===F.br&&e.md.includes(n)&&base(e,{noMod:1,noMonth:1})).length;return {n,c}}).filter(o=>o.c||EVENTS.some(e=>e.k===F.br&&e.md.includes(o.n)));
+      const all=EVENTS.filter(e=>base(e,{noMod:1,noMonth:1})).length;
+      h+=`<div class="pk"><div class="pkh">2. Modul wählen</div><div class="chips"><button class="chip" data-act="m" data-m="0" aria-pressed="true">Alle Module <span class="n">(${all})</span></button>${opts.map(o=>`<button class="chip" data-act="m" data-m="${o.n}" aria-pressed="false">${esc(modTitle(F.br,o.n))} <span class="n">(${o.c})</span></button>`).join('')}</div>${opts.length<B.mods.length?`<div class="pknote">Module ohne Eintrag im Kalender werden nicht angezeigt.</div>`:''}</div>`;
+    } else {
+      h+=`<div class="picked"><div class="main"><div class="s">Modul</div><div class="t">${esc(modTitle(F.br,F.mod))}</div></div><button data-act="mclear" aria-label="Anderes Modul wählen">Ändern</button></div>`;
+    }
+  }
+  $('#pick').innerHTML=h;
+}
+function renderMonths(){
+  const by={};filtered(true).forEach(e=>{const m=e.d.slice(0,7);(by[m]=by[m]||{L:0,W:0,U:0})[e.c]++});
+  const ks=Object.keys(by).sort();if(F.month&&!ks.includes(F.month))F.month='';const mx=Math.max(1,...ks.map(k=>Math.max(by[k].L,by[k].W,by[k].U)));
+  $('#months').innerHTML=ks.map(k=>{const [y,m]=k.split('-'),o=by[k];return `<button class="mon" data-act="month" data-m="${k}" aria-pressed="${F.month===k}" aria-label="${MONL[m-1]} ${y}"><div class="m">${MON[m-1]} ${y.slice(2)}</div><div class="bars">${['L','W','U'].map(c=>`<span class="c-${c}" style="height:${o[c]?Math.max(3,Math.round(o[c]/mx*22)):0}px"></span>`).join('')}</div></button>`}).join('');
+}
+function renderActive(n){
+  const a=[];const CN={L:'Laufbahn',W:'Weiterbildung',U:'Übungen'};
+  if(F.cat)a.push(['cat',CN[F.cat]]);if(F.br)a.push(['br',F.br]);if(F.mod)a.push(['mod','Modul '+F.mod]);if(F.month){const [y,m]=F.month.split('-');a.push(['month',MONL[m-1]+' '+y])}if(F.ort)a.push(['ort',F.ort]);if(F.q.trim())a.push(['q','„'+F.q.trim()+'“']);if(F.past)a.push(['past','mit vergangenen']);
+  $('#active').innerHTML=`<span class="cnt">${n} ${n===1?'Termin':'Termine'}</span>`+a.map(x=>`<button class="fchip" data-act="fchip" data-f="${x[0]}" aria-label="Filter ${esc(x[1])} entfernen">${esc(x[1])} ✕</button>`).join('')+(a.length?'<button class="freset" data-act="reset">Filter zurücksetzen</button>':'');
+}
+function clearF(f){if(f==='cat'){F.cat='';F.br='';F.mod=0}if(f==='br'){F.br='';F.mod=0}if(f==='mod')F.mod=0;if(f==='month')F.month='';if(f==='ort'){F.ort='';$('#fort').value=''}if(f==='q'){F.q='';$('#fq').value=''}if(f==='past'){F.past=false;syncPast()}renderKal()}
+function resetAll(){F.cat='';F.br='';F.mod=0;F.month='';F.ort='';F.q='';F.past=false;$('#fort').value='';$('#fq').value='';syncPast();navFrom='';renderKal()}
+function syncPast(){const b=$('#fpast');b.setAttribute('aria-pressed',F.past);b.textContent=F.past?'Nur kommende':'Vergangene zeigen'}
+function renderCtx(){
+  if(!F.br){$('#ctx').innerHTML='';return}
+  const B=BREVET[KG[F.br]];
+  $('#ctx').innerHTML=`<div class="ctx">${navFrom==='weg'?'<button class="backl" data-act="backweg">‹ Zurück zu Mein Weg</button>':''}<div class="k">Laufbahn · Brevet ${B.b}</div><h2>${esc(KG[F.br])}${F.mod?' · Modul '+F.mod:''}</h2><div class="s">${F.mod?esc(modName(F.br,F.mod)||'')+(modName(F.br,F.mod)?' · ':''):'Alle Module · '}${F.past?'alle Termine':'kommende Termine'}</div></div>`;
+}
+function renderList(){
+  renderMonths();const l=filtered(false);renderActive(l.length);renderCtx();let h='';
+  if(F.br){
+    const grp={};l.forEach(e=>{const key=F.mod?String(F.mod):e.md.length?e.md.join('+'):'?';(grp[key]=grp[key]||[]).push(e)});
+    Object.keys(grp).sort((a,b)=>(a==='?')-(b==='?')||parseInt(a)-parseInt(b)||a.length-b.length).forEach(key=>{
+      const ev=grp[key],nums=key==='?'?[]:key.split('+').map(Number);
+      const head=key==='?'?'Modul noch nicht zugeordnet':nums.length>1?'Module '+nums.join(' + '):modTitle(F.br,nums[0]);
+      const gs=[...new Set(ev.map(e=>e.gp).filter(Boolean))];
+      h+=`<div class="mh">${esc(F.br+' – '+head)}<span class="s">${ev.length} ${ev.length===1?'Termin':'Termine'}${gs.length>1?' · getrennt nach '+gs.join(' und '):''}</span></div><div class="group">${ev.map(e=>evRow(e,true)).join('')}</div>`;
+    });
+  } else {
+    let cur='',open=false;
+    l.forEach(e=>{const m=e.d.slice(0,7);if(m!==cur){if(open)h+='</div>';cur=m;const [y,mm]=m.split('-');h+=`<div class="sec">${MONL[mm-1]} ${y}</div><div class="group">`;open=true}h+=evRow(e,false)});
+    if(open)h+='</div>';
+  }
+  if(!h){
+    const pastN=F.past?0:EVENTS.filter(e=>isPast(e)&&base(e,{past:1})).length;
+    h=`<div class="empty">${F.br?`<p><b>Keine kommenden Termine${F.mod?' für dieses Modul':''}.</b></p>`:'<p>Keine Termine für diese Auswahl.</p>'}${pastN?`<p>${pastN} vergangene ${pastN===1?'Termin':'Termine'} vorhanden.</p>`:''}<div class="bb">${pastN?'<button class="btn btn-tint" data-act="past">Vergangene Termine zeigen</button>':''}<button class="btn btn-grey" data-act="reset">Filter zurücksetzen</button></div></div>`;
+  }
+  $('#list').innerHTML=h;
+}
+function renderKal(){renderCats();renderPick();renderList()}
+function fillOrte(){const orte=[...new Set(EVENTS.map(e=>e.o).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'de'));$('#fort').innerHTML='<option value="">Alle Orte</option>'+orte.map(o=>`<option>${esc(o)}</option>`).join('');if(F.ort&&!orte.includes(F.ort))F.ort='';$('#fort').value=F.ort}
+function showStand(){const [y,m,d]=STAND.split('-');$('#stand').textContent=`Termine: Stand ${+d}.${+m}.${y} · täglich aktualisiert`}
+function initFilters(){
+  fillOrte();
+  $('#fort').addEventListener('change',e=>{F.ort=e.target.value;renderKal()});
+  $('#fq').addEventListener('input',e=>{F.q=e.target.value;renderPick();renderList()});
+}
+
+// Eine einzige Klick-Behandlung für alle Schaltflächen (auch für später erzeugte)
+document.addEventListener('click',ev=>{
+  const el=ev.target.closest('[data-act]');if(!el)return;
+  if(sheetOpen&&!$('#sheet').contains(el)&&el.id!=='scrim')return;
+  if(!sheetOpen&&Date.now()-closedAt<400)return; // Nachtipper nach dem Schließen ignorieren
+  const d=el.dataset;
+  switch(d.act){
+    case 'tab': if(sheetOpen)return; if(d.v!=='kal')navFrom=''; show(d.v); if(d.v==='kal')renderCtx(); break;
+    case 'grade': setGrade(d.g); break;
+    case 'modsheet': modSheet(d.g); break;
+    case 'ev': evSheet(+d.i); break;
+    case 'all': goCal(d.k,0); break;
+    case 'mod': goCal(d.k,+d.m); break;
+    case 'wb': F.cat='W';F.br='';F.mod=0;F.q='';F.month='';F.ort='';$('#fq').value='';$('#fort').value='';navFrom='';renderKal();show('kal'); break;
+    case 'cat': setCat(d.c); break;
+    case 'br': F.br=d.k;F.mod=0;renderKal(); break;
+    case 'brclear': F.br='';F.mod=0;renderKal(); break;
+    case 'm': F.mod=+d.m;renderKal(); break;
+    case 'mclear': F.mod=0;renderKal(); break;
+    case 'month': F.month=F.month===d.m?'':d.m;renderList(); break;
+    case 'fchip': clearF(d.f); break;
+    case 'reset': resetAll(); break;
+    case 'past': F.past=!F.past;syncPast();renderKal(); break;
+    case 'copy': copyText(d.s); break;
+    case 'close': closeSheet(); break;
+    case 'backweg': navFrom=''; if(history.state&&history.state.v==='kal'){try{history.back();break}catch(e){}} show('weg'); break;
+  }
+});
+
+$('#ctaBox').innerHTML=mailA('Interesse an einer Ausbildung','Interesse melden','btn-red');
+(function(){hreplace({v:'weg'});curView='';show('weg',false)})();
+renderGrades();renderWeg();initFilters();renderKal();showStand();
+// Aktuelle Termine nachladen (liegen neben der App). Ohne Verbindung bleiben die eingebauten Termine.
+let pendingData=null;
+function applyData(j){if(sheetOpen){pendingData=j;return}EVENTS=j.termine;STAND=j.stand;prepEvents();fillOrte();renderWeg();renderKal();showStand()}
+try{fetch('termine.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&Array.isArray(j.termine)&&j.termine.length>50&&j.stand&&j.stand>=STAND)applyData(j)}).catch(()=>{})}catch(e){}
+</script>
+</body>
+</html>
