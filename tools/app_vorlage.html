@@ -313,11 +313,15 @@ const DELTA={
  BO2:{b:'B Delta',alt:'das frühere Brevet eines Feuerwehrmanns (altes System, KE vom 21.02.2011)',art:'Art. 26 und 67 § 1 KE vom 18.11.2015, Anlage 1',h:61,
   mods:[{c:'1',n:'Hilfeleistung',fr:'Secours',th:21,ka:40,he:0,h:61}],
   extra:'Dein altes Brevet gilt als BO1, also wie NBO1. Für BO2 brauchst du vorher B Delta.'},
- NMO2:{b:'NM Delta',alt:'das frühere Brevet eines Sergeanten (altes System, KE vom 21.02.2011)',art:'Art. 28 und 67 KE vom 18.11.2015, Anlage 1',h:85,
-  mods:[{c:'DMO2/01',n:'Innenbrände',fr:'Incendies intérieurs',th:12,ka:1,he:5,h:18},{c:'DMO2/02',n:'Technische Hilfeleistung',fr:'Secours techniques',th:3,ka:12,he:0,h:15},{c:'NMO1/07',n:'Gefährliche Stoffe 1',fr:'Substances dangereuses 1',th:16,ka:8,he:0,h:24},{c:'NMO1/08',n:'Gefährliche Stoffe 2',fr:'Substances dangereuses 2',th:18,ka:10,he:0,h:28}],
-  extra:'Dein altes Brevet gilt als MO1, also wie NMO1. Für NMO2 brauchst du vorher NM Delta. Wer schon das Brevet M Delta hat, braucht nichts mehr: es gilt als NM Delta.'}
+ NMO2:{zone:true,k:'NMO1',nr:[2,3,4,6,7,8],h:172,
+  titel:'Mit früherem Brevet eines Sergeanten: zuerst NMO1-Module',
+  text:'Hast du das frühere Brevet eines Sergeanten (altes System, KE vom 21.02.2011)? Dann holst du vor NMO2 diese Module des NMO1 nach. Die verkürzte Delta-Ausbildung (NM Delta) erkennt die Zone nicht an.',
+  art:'Regel der Zone. Zulassung zu NMO2: Art. 28 KE vom 18.11.2015. Stunden laut Anlage 1.'}
 };
 function deltaBlk(k){const D=DELTA[k];if(!D)return '';
+  if(D.zone){const M=BREVET[KG[D.k]];
+    const mods=D.nr.map(nr=>{const m=M.mods[nr-1],ev=hasEv(D.k,nr);return `<details class="md"><summary><span class="mc">${esc(m.c)}</span><span class="mn">${esc(m.n)}</span><b class="mh2">${m.h} h</b></summary><div class="mdx"><div>Theorie ${m.th} h · Kaltausbildung ${m.ka} h · Heißausbildung ${m.he} h</div><div class="fr" lang="fr">${esc(m.fr)}</div>${ev?`<button class="lnk" data-act="mod" data-k="${D.k}" data-m="${nr}">Termine im Kalender ›</button>`:'<div class="s">Zurzeit keine Termine im Kalender.</div>'}</div></details>`}).join('');
+    return `<div class="blk n-delta"><div class="blkh">${esc(D.titel)}</div><p>${esc(D.text)}</p><div class="modlist">${mods}<div class="mtot"><span>Gesamt</span><b>${D.h} h</b></div></div><div class="src">${esc(D.art)}</div></div>`}
   const mods=D.mods.map(m=>`<details class="md"><summary><span class="mc">${esc(m.c)}</span><span class="mn">${esc(m.n)}</span><b class="mh2">${m.h} h</b></summary><div class="mdx"><div>Theorie ${m.th} h · Kaltausbildung ${m.ka} h · Heißausbildung ${m.he} h</div><div class="fr" lang="fr">${esc(m.fr)}</div></div></details>`).join('');
   return `<div class="blk n-delta"><div class="blkh">Mit früherem Brevet: zuerst ${D.b}</div><p>Hast du ${esc(D.alt)}? ${esc(D.extra)}</p><div class="modlist">${mods}<div class="mtot"><span>${D.b} gesamt</span><b>${D.h} h</b></div></div><div class="src">${D.art}</div></div>`}
 const KG={};Object.keys(BREVET).forEach(g=>KG[BREVET[g].k]=g);
@@ -446,7 +450,7 @@ function brevetCard(g,n){
   const org=(B.org||[]);
   return `<div class="hero"><div class="k" ${n?'style="color:var(--sub)"':''}>${n?'Auch möglich':'Dein nächster Schritt'}</div><h3>${esc(g)}</h3>
     <div class="facts"><div class="fact">Brevet<b>${B.b}</b></div><div class="fact">Ausbildung<b>${B.h} h</b></div><div class="fact">Module<b>${B.mods.length}</b></div></div>
-    ${zul}${deltaBlk(B.k)}${B.k==='NOFF1'?`<div class="blk n-delta"><div class="blkh">Mit früherem Brevet eines Sergeanten</div><p>Für NOFF1 brauchst du NMO2 (Art. 29). Der Weg ist also: NM Delta (85 h), dann NMO2, dann NOFF1.</p></div>`:''}
+    ${zul}${deltaBlk(B.k)}${B.k==='NOFF1'?`<div class="blk n-delta"><div class="blkh">Mit früherem Brevet eines Sergeanten</div><p>Für NOFF1 brauchst du NMO2 (Art. 29). Der Weg ist also: die NMO1-Module 2, 3, 4, 6, 7 und 8 (172 h), dann NMO2, dann NOFF1.</p></div>`:''}
     <div class="blkh" style="margin-top:14px">Module laut Königlichem Erlass</div>
     <div class="modlist">${mods}<div class="mtot"><span>Gesamt</span><b>${B.h} h</b></div></div>
     ${bef}
@@ -471,11 +475,11 @@ function renderWeg(){
 function altCard(){return `<div class="hero"><div class="k">Frühere Brevets</div><h3>Was dein altes Brevet heute gilt</h3><ul class="rules">
 <li>Feuerwehrmann = BO1. Für BO2 (Korporal) brauchst du vorher <b>B Delta</b> (61 h).</li>
 <li>Korporal = BO2.</li>
-<li>Sergeant = MO1. Für NMO2 (Adjutant) brauchst du vorher <b>NM Delta</b> (85 h).</li>
+<li>Sergeant = MO1. Für NMO2 (Adjutant) verlangt die Zone vorher die <b>NMO1-Module 2, 3, 4, 6, 7 und 8</b> (172 h). Die verkürzte Ausbildung NM Delta reicht in unserer Zone nicht.</li>
 <li>Adjutant = MO2.</li>
 <li>Offizier = OFF1. Dienstleiter = OFF3.</li>
-<li>Die Brevets BO1, MO1, MO2, OFF1 und OFF2 gelten wie NBO1, NMO1, NMO2, NOFF1 und NOFF2. M Delta gilt wie NM Delta.</li></ul>
-<p class="s" style="margin:6px 2px">Unsicher, welches Brevet du hast? Frag bei der Ausbildungszelle nach.</p><div class="src">Art. 26, 28 und 67 KE vom 18.11.2015</div></div>`}
+<li>Die Brevets BO1, MO1, MO2, OFF1 und OFF2 gelten wie NBO1, NMO1, NMO2, NOFF1 und NOFF2.</li></ul>
+<p class="s" style="margin:6px 2px">Unsicher, welches Brevet du hast? Frag bei der Ausbildungszelle nach.</p><div class="src">Art. 26, 28 und 67 KE vom 18.11.2015; NMO1-Module für frühere Sergeanten: Regel der Zone</div></div>`}
 function rulesCard(){return `<div class="hero"><div class="k">Für alle Brevets</div><h3>Was auf dich zukommt</h3><ul class="rules">
 <li>Die Zone schreibt dich ein. Außer bei NBO1 geht das nur mit Zustimmung des Zonenkommandanten. Gegen eine Ablehnung kannst du beim Zonenrat Widerspruch einlegen.</li>
 <li>Die Anmeldung muss spätestens am Ende des zweiten Monats vor Kursbeginn beim Ausbildungszentrum sein. Melde dein Interesse deshalb früh.</li>
