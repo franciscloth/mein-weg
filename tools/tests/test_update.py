@@ -155,5 +155,47 @@ class Abgleich(unittest.TestCase):
         self.assertEqual(self.lauf(roh(z), '--dry-run'), 0)
         self.assertEqual(open(os.path.join(self.dir, 'termine.json'), encoding='utf-8').read(), vorher)
 
+    # Absagen aus Mails (tools/absagen.json)
+    def absagen(self, liste):
+        open(os.path.join(self.dir, 'tools', 'absagen.json'), 'w', encoding='utf-8').write(json.dumps(liste, ensure_ascii=False))
+    def test_18_absage_eindeutig(self):
+        self.absagen([{'d': '2027-01-01', 'v': '19:00', 'n': 'AT7100', 'grund': 'mangels Teilnehmer', 'gemeldet': '2026-10-27'}])
+        rc, n, g, e, b = self.geaendert(basiszeilen())
+        self.assertEqual((rc, n, g, e), (0, 0, 1, 0))
+        t = [x for x in self.termine() if x.get('a')]
+        self.assertEqual(len(t), 1); self.assertEqual((t[0]['d'], t[0]['n'], t[0]['ag']), ('2027-01-01', 'AT7100', 'mangels Teilnehmer'))
+        self.assertIn('Annulliert: None → True', b); self.assertIn('Als annulliert gekennzeichnet', b)
+        self.assertEqual(self.lauf(roh(basiszeilen())), 3)          # zweiter Lauf: keine Änderung mehr
+    def test_19_absage_ohne_grund(self):
+        self.absagen([{'d': '2027-01-01', 't': 'Thema 0'}])
+        self.assertEqual(self.lauf(roh(basiszeilen())), 0)
+        t = [x for x in self.termine() if x.get('a')]
+        self.assertEqual(len(t), 1); self.assertNotIn('ag', t[0])
+    def test_20_absage_ohne_termin(self):
+        self.absagen([{'d': '2027-12-30', 'n': 'AT0000', 'grund': 'mangels Teilnehmer'}])
+        self.assertEqual(self.lauf(roh(basiszeilen())), 3)
+        self.assertIn('ohne passenden Termin', self.bericht())
+    def test_21_absage_mehrdeutig(self):
+        z = basiszeilen() + ['samedi 1 janvier 2027\tWeiterbildung\tAT7100\tThema 0 b\tKelmis\t19:00\t21:00\t00:00\t02:00']
+        self.lauf(roh(z))
+        self.absagen([{'d': '2027-01-01', 'n': 'AT7100'}])
+        self.assertEqual(self.lauf(roh(z)), 3)
+        self.assertIn('passt auf 2 Termine', self.bericht())
+        self.assertFalse(any(x.get('a') for x in self.termine()))
+    def test_22_absage_kaputte_datei(self):
+        vorher = open(os.path.join(self.dir, 'termine.json'), encoding='utf-8').read()
+        open(os.path.join(self.dir, 'tools', 'absagen.json'), 'w').write('[{')
+        self.assertEqual(self.lauf(roh(basiszeilen())), 2)
+        self.assertEqual(open(os.path.join(self.dir, 'termine.json'), encoding='utf-8').read(), vorher)
+    def test_23_absage_ungueltiger_eintrag(self):
+        self.absagen([{'d': '2027-01-01', 'n': 'AT7100', 'grund': 'Rückfragen an max@example.com'}, {'d': 'morgen', 'n': 'AT7102'}])
+        self.assertEqual(self.lauf(roh(basiszeilen())), 3)
+        self.assertIn('übersprungen', self.bericht()); self.assertFalse(any(x.get('a') for x in self.termine()))
+    def test_24_absage_zurueckgenommen(self):
+        self.absagen([{'d': '2027-01-01', 'n': 'AT7100'}]); self.lauf(roh(basiszeilen()))
+        self.absagen([])
+        rc, n, g, e, b = self.geaendert(basiszeilen())
+        self.assertEqual((rc, n, g, e), (0, 0, 1, 0)); self.assertIn('Annulliert: True → None', b)
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

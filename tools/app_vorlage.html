@@ -101,6 +101,7 @@ details[open] summary::after{transform:rotate(-90deg)}
 .date span{font-size:11px;color:var(--sub);text-transform:uppercase;font-weight:600}
 .bar{width:4px;align-self:stretch;border-radius:2px;flex-shrink:0}
 .ev.past{opacity:.5}
+.ev.ann .tt{text-decoration:line-through;text-decoration-color:var(--red)}
 .empty{text-align:center;color:var(--sub);padding:28px 0}
 /* overview */
 .stat{display:flex;gap:14px;align-items:center}
@@ -402,13 +403,14 @@ document.addEventListener('keydown',e=>{if(!sheetOpen)return;if(e.key==='Escape'
 function evSheet(i){
   const e=EVENTS[i],d=pd(e.d),past=isPast(e);
   const time=hasT(e)?fmtT(e.v)+'–'+fmtT(e.b)+' Uhr':'Uhrzeit folgt';
-  const status=past?'vorbei':e.x?'noch nicht bestätigt':'bestätigt';
+  const status=e.a?'annulliert':past?'vorbei':e.x?'noch nicht bestätigt':'bestätigt';
   const row=(a,b)=>`<div class="row"><div class="main"><div class="s">${a}</div><div class="t">${b}</div></div></div>`;
-  let h=`<span class="pill ${e.c==='L'?'p-red':e.c==='W'?'p-blue':'p-grey'}">${CATN[e.c]}</span>${e.x?' <span class="pill p-grey">noch nicht bestätigt</span>':''}
+  let h=`<span class="pill ${e.c==='L'?'p-red':e.c==='W'?'p-blue':'p-grey'}">${CATN[e.c]}</span>${e.a?' <span class="pill p-red">annulliert</span>':e.x?' <span class="pill p-grey">noch nicht bestätigt</span>':''}
   <h3 id="sh-t">${esc(e.t)}</h3><div class="group">`;
   if(e.c==='L'&&KG[e.k])h+=row('Brevet',esc(e.k+' – '+KG[e.k]))+row('Modul',esc(modLabel(e)))+(e.sq||e.gp?row('Einheit',esc([e.sq,e.gp].filter(Boolean).join(' · '))):'');
-  h+=row('Datum',fmtL(d))+row('Uhrzeit',time+(e.h?' · '+String(e.h).replace('.',',')+' h':''))+row('Ort',esc(e.o||'wird mitgeteilt'))+(e.n?row('Kursnummer',`<span class="code">${esc(e.n)}</span>`):'')+row('Status',status)+`</div>`;
-  if(e.x&&!past){h+=`<div class="sec">Anmeldung</div><div class="group" style="padding:12px 16px;font-size:15px">Dieser Termin steht noch nicht fest. Anmelden kannst du dich erst, wenn er bestätigt ist. Frag bei Bedarf bei der Ausbildungszelle nach.</div>`}
+  h+=row('Datum',fmtL(d))+row('Uhrzeit',time+(e.h?' · '+String(e.h).replace('.',',')+' h':''))+row('Ort',esc(e.o||'wird mitgeteilt'))+(e.n?row('Kursnummer',`<span class="code">${esc(e.n)}</span>`):'')+row('Status',status)+(e.a&&e.ag?row('Grund',esc(e.ag)):'')+`</div>`;
+  if(e.a){h+=`<div class="sec">Annulliert</div><div class="group" style="padding:12px 16px;font-size:15px">Dieser Termin findet nicht statt${e.ag?' ('+esc(e.ag)+')':''}. Bei Fragen wende dich an die Ausbildungszelle.</div>`}
+  else if(e.x&&!past){h+=`<div class="sec">Anmeldung</div><div class="group" style="padding:12px 16px;font-size:15px">Dieser Termin steht noch nicht fest. Anmelden kannst du dich erst, wenn er bestätigt ist. Frag bei Bedarf bei der Ausbildungszelle nach.</div>`}
   else if(e.c==='U'){h+=`<div class="sec">Anmeldung</div><div class="group" style="padding:12px 16px;font-size:15px">Wachübung, keine Anmeldung in Magenta. Infos bei deinem Wachleiter.</div>`}
   else if(!past){
     h+=`<div class="sec">So findest du den Kurs in Magenta</div><div class="group" style="padding:12px 16px;font-size:15px"><ol class="howto">
@@ -425,8 +427,8 @@ function evRow(e,inModule){
   const time=hasT(e)?fmtT(e.v)+'–'+fmtT(e.b):'Uhrzeit folgt';
   const lbl=(e.c==='L'&&!inModule)?`<span class="modlbl">${esc(e.k+' · '+modLabel(e))}</span>`:'';
   const title=inModule?(e.md.length>1?'Module '+e.md.join(' + ')+': ':'')+shortT(e):e.t;
-  const sub=[time,e.o,past?'vorbei':''].filter(Boolean).join(' · ');
-  return `<button class="row ev${past?' past':''}" data-act="ev" data-i="${e.i}"><span class="bar c-${e.c}"></span><span class="date"><b>${d.getDate()}</b><span>${WD[d.getDay()]} ${MON[d.getMonth()]}</span></span><span class="main">${lbl}<span class="t" style="display:block">${esc(title)}${e.x?' <span class="pill p-grey">noch nicht bestätigt</span>':''}</span><span class="s">${esc(sub)}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
+  const sub=[time,e.o,e.a?(e.ag?'annulliert: '+e.ag:'annulliert'):past?'vorbei':''].filter(Boolean).join(' · ');
+  return `<button class="row ev${past?' past':''}${e.a?' ann':''}" data-act="ev" data-i="${e.i}"><span class="bar c-${e.c}"></span><span class="date"><b>${d.getDate()}</b><span>${WD[d.getDay()]} ${MON[d.getMonth()]}</span></span><span class="main">${lbl}<span class="t" style="display:block"><span class="tt">${esc(title)}</span>${e.a?' <span class="pill p-red">annulliert</span>':e.x?' <span class="pill p-grey">noch nicht bestätigt</span>':''}</span><span class="s">${esc(sub)}</span></span><span class="chev" aria-hidden="true">›</span></button>`;
 }
 
 // Mein Weg

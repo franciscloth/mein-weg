@@ -47,9 +47,10 @@ def build(raw):
     return out, seen
 
 # Felder, die in der App sichtbar sind oder die Zuordnung bestimmen
-FELDER = ['d', 'v', 'b', 't', 'o', 'c', 'k', 'md', 'sq', 'gp', 'n', 'x', 'h']
+FELDER = ['d', 'v', 'b', 't', 'o', 'c', 'k', 'md', 'sq', 'gp', 'n', 'x', 'h', 'a', 'ag']
 FELDNAMEN = {'d': 'Datum', 'v': 'Beginn', 'b': 'Ende', 't': 'Titel', 'o': 'Ort', 'c': 'Kategorie', 'k': 'Brevet',
-             'md': 'Modul', 'sq': 'Sequenz', 'gp': 'Gruppe', 'n': 'Kursnummer', 'x': 'Status (unbestätigt)', 'h': 'Stunden'}
+             'md': 'Modul', 'sq': 'Sequenz', 'gp': 'Gruppe', 'n': 'Kursnummer', 'x': 'Status (unbestätigt)', 'h': 'Stunden',
+             'a': 'Annulliert', 'ag': 'Grund der Annullierung'}
 MIN_TERMINE = 50
 
 def norm(v):
@@ -103,6 +104,52 @@ def vergleiche(alt, neu):
     return {'neu': [neu[j] for j in rest_n], 'entfallen': [alt[i] for i in rest_a], 'geaendert': geaendert,
             'mehrdeutig': mehrdeutig, 'unveraendert': len(used_n)}
 
+def lade_absagen(pfad):
+    """Absagen aus Mails der Ausbildungszelle (tools/absagen.json). Liste von Einträgen:
+    {"d": "JJJJ-MM-TT", "v": "HH:MM" (optional), "n": Kursnummer (optional), "t": Titelstück (optional),
+     "o": Ort (optional), "grund": "mangels Teilnehmer" (optional), "gemeldet": "JJJJ-MM-TT"}
+    Rückgabe: (gültige Einträge, Fehler, Hinweise). Kaputte Datei = Fehler; einzelne ungültige Einträge werden übersprungen."""
+    if not os.path.exists(pfad): return [], [], []
+    try: liste = json.load(open(pfad, encoding='utf-8'))
+    except Exception as ex: return [], [f'tools/absagen.json ist kein gültiges JSON: {ex}'], []
+    if not isinstance(liste, list): return [], ['tools/absagen.json muss eine Liste sein.'], []
+    ok, hinweise = [], []
+    for a in liste:
+        if not isinstance(a, dict): hinweise.append(f'Ungültige Absage übersprungen: {a!r}'); continue
+        try: datetime.date.fromisoformat(a.get('d', ''))
+        except Exception: hinweise.append(f"Absage mit ungültigem Datum übersprungen: {a!r}"); continue
+        if not (a.get('v') or a.get('n') or a.get('t')):
+            hinweise.append(f"Absage am {a['d']} ohne Uhrzeit, Kursnummer oder Titel übersprungen."); continue
+        g = a.get('grund') or ''
+        if not isinstance(g, str) or len(g) > 120 or re.search(r'@|\d{3}[\s/.]?\d{2}[\s/.]?\d{2}', g):
+            hinweise.append(f"Absage am {a['d']} übersprungen: Grund zu lang oder mit Mailadresse/Telefonnummer."); continue
+        ok.append(a)
+    return ok, [], hinweise
+
+def passt(a, e):
+    if e['d'] != a['d']: return False
+    if a.get('v') and zeit(e.get('v') or '') != zeit(a['v']): return False
+    if a.get('n') and (e.get('n') or '').upper().replace(' ', '') != a['n'].upper().replace(' ', ''): return False
+    if a.get('t') and titel_norm(a['t']) not in titel_norm(e['t']): return False
+    if a.get('o') and (e.get('o') or '') != a['o']: return False
+    return True
+
+def wende_absagen_an(ev, absagen, heute):
+    """Markiert abgesagte Termine (a = True, ag = Grund). Nur eindeutige Zuordnungen werden übernommen."""
+    angewandt, hinweise = [], []
+    for a in absagen:
+        kand = [e for e in ev if passt(a, e)]
+        beschr = f"{a['d']} {a.get('v', '')} {a.get('t') or a.get('n') or ''}".replace('  ', ' ').strip()
+        if len(kand) == 1:
+            e = kand[0]; e['a'] = True
+            if (a.get('grund') or '').strip(): e['ag'] = a['grund'].strip()
+            angewandt.append(e)
+        elif not kand:
+            if a['d'] >= heute: hinweise.append(f"Absage aus Mail ohne passenden Termin in der Tabelle: {beschr}")
+        else:
+            hinweise.append(f"Absage aus Mail passt auf {len(kand)} Termine, nicht übernommen: {beschr} → " + ' | '.join(zeile(x) for x in kand))
+    return angewandt, hinweise
+
 def pruefen(ev, alt, seen, erg, alt_blaetter=None):
     """Fehler verhindern die Veröffentlichung. Hinweise gelten nur für neue oder geänderte Termine."""
     fehler, hinweise = [], []
@@ -142,7 +189,7 @@ def pruefen(ev, alt, seen, erg, alt_blaetter=None):
 def zeile(e):
     return f"{e['d']} {e.get('v','') or ''} {e['t']} ({e.get('o','') or ''})".replace('  ', ' ')
 
-def bericht(ev, alt, seen, erg, fehler, hinweise, heute):
+def bericht(ev, alt, seen, erg, fehler, hinweise, heute, annulliert=()):
     dub = sum(c - 1 for c in __import__('collections').Counter(inhalt(e) for e in ev).values() if c > 1)
     b = [f"# Abgleich Mein Weg – {heute}", f"Gelesene Blätter: {', '.join(seen) or '–'}",
          f"Termine: {len(ev)} (vorher {len(alt)}) · unverändert {erg['unveraendert']} · neu {len(erg['neu'])} · geändert {len(erg['geaendert'])} · entfallen {len(erg['entfallen'])} · mehrfach vorhandene Zeilen {dub}", '']
@@ -157,6 +204,7 @@ def bericht(ev, alt, seen, erg, fehler, hinweise, heute):
     if erg['entfallen']: b += ['## Entfallen'] + [f'- {zeile(e)}' for e in erg['entfallen'][:80]] + ['']
     if erg['mehrdeutig']:
         b += ['## Mehrdeutige Zuordnung (bitte prüfen)'] + [f"- {zeile(a)} → {len(k)} mögliche Termine: " + ' | '.join(zeile(x) for x in k) for a, k in erg['mehrdeutig']] + ['']
+    if annulliert: b += ['## Als annulliert gekennzeichnet (aus Mails)'] + [f"- {zeile(e)}" + (f" – {e['ag']}" if e.get('ag') else '') for e in annulliert] + ['']
     if hinweise: b += ['## Hinweise zur Prüfung'] + [f'- {x}' for x in sorted(set(hinweise))] + ['']
     return '\n'.join(b)
 
@@ -183,10 +231,14 @@ def main(argv=None):
         fehler0 = [f'Quelldatei konnte nicht gelesen werden: {ex}']
     else:
         fehler0 = []
+    absagen, fehler_abs, hinweise_abs = lade_absagen(os.path.join(ziel, 'tools', 'absagen.json'))
+    annulliert, h2 = wende_absagen_an(ev, absagen, heute)
+    hinweise_abs += h2
     erg = vergleiche(alt, ev)
     fehler, hinweise = pruefen(ev, alt, seen, erg, alt_blaetter)
-    fehler = fehler0 + fehler
-    text = bericht(ev, alt, seen, erg, fehler, hinweise, heute)
+    fehler = fehler0 + fehler_abs + fehler
+    hinweise += hinweise_abs
+    text = bericht(ev, alt, seen, erg, fehler, hinweise, heute, [e for e in annulliert if e['d'] >= heute])
     schreibe_atomar(os.path.join(ziel, 'tools', 'bericht.md') if os.path.isdir(os.path.join(ziel, 'tools')) else os.path.join(ziel, 'bericht.md'), text)
     print(text)
     if fehler: return 2

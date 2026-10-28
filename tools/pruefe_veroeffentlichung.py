@@ -10,6 +10,8 @@ Exit 0 = in Ordnung, Exit 1 = nicht veröffentlichen.
 import json, os, re, subprocess, sys, shutil, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.environ.get('MEINWEG_ROOT') or os.path.dirname(HERE)
 OEFFENTLICH = ['index.html', 'termine.json']
+# Liegt im (öffentlichen) Repository, wird aber nicht veröffentlicht: gleiche Datenschutzprüfung
+IM_REPOSITORY = ['tools/absagen.json']
 ERLAUBTE_MAILS = {'ausbildungszelle@hlzdg.be'}
 
 def eingebettet(html):
@@ -54,6 +56,7 @@ def main(argv):
     for e in t:
         if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', e.get('d', '')) or not e.get('t') or e.get('c') not in ('L', 'W', 'U'):
             fehler.append(f'Ungültiger Termin: {e}'); break
+        if 'a' in e and not isinstance(e['a'], bool): fehler.append(f'Ungültige Annullierung: {e}'); break
     # 3. Keine Platzhalter, Skript lauffähig
     if re.search(r'__(DATA|STAND|FAV|ICON|EMB|FULL|CSS)__', html): fehler.append('index.html enthält noch Platzhalter.')
     if shutil.which('node'):
@@ -62,7 +65,10 @@ def main(argv):
         r = subprocess.run(['node', '--check', js], capture_output=True, text=True); os.unlink(js)
         if r.returncode: fehler.append('Syntaxfehler im Skript von index.html: ' + r.stderr.strip()[:300])
     # 4. Datenschutz: keine fremden Mailadressen, keine Telefonnummern, keine Ausbildernamen
-    for f, p in pfade.items():
+    pruef = dict(pfade)
+    for f in IM_REPOSITORY:
+        if os.path.exists(os.path.join(ROOT, f)): pruef[f] = os.path.join(ROOT, f)
+    for f, p in pruef.items():
         text = open(p, encoding='utf-8').read()
         ohne_bilder = re.sub(r'data:image/[a-z]+;base64,[A-Za-z0-9+/=]+', '', text)
         for m in set(re.findall(r'[\w.+-]+@[\w-]+\.[\w.]+', ohne_bilder)):

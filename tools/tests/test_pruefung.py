@@ -37,6 +37,10 @@ class Pruefung(unittest.TestCase):
         self.aendere('termine.json', '"t":"', '"t":"Mustermann Erika ')
         self.aendere('index.html', '"t":"', '"t":"Mustermann Erika ')
         rc, out = self.lauf(raw); self.assertEqual(rc, 1); self.assertIn('Mustermann Erika', out)
+    def test_absagen_mit_mailadresse(self):
+        os.makedirs(os.path.join(self.dir, 'tools'))
+        open(os.path.join(self.dir, 'tools', 'absagen.json'), 'w').write('[{"d":"2027-01-01","n":"AT1","grund":"x","q":"max.muster@example.com"}]')
+        rc, out = self.lauf(); self.assertEqual(rc, 1); self.assertIn('max.muster@example.com', out)
     def test_platzhalter(self):
         self.aendere('index.html', '<title>', '<title>__DATA__')
         self.assertEqual(self.lauf()[0], 1)
