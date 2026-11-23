@@ -29,7 +29,10 @@ def ableiten(e):
     e.setdefault('md', [])
     return e
 
+BUILD_HINWEISE = []
+
 def build(raw):
+    BUILD_HINWEISE.clear()
     ev, seen = parse(raw)
     ev = [e for e in ev if not (e['n'] or '').upper().replace(' ', '') in AUSSCHLUSS_CODES]
     # Rohtitel merken (für Korrekturen)
@@ -41,16 +44,29 @@ def build(raw):
     # Laufbahntermine, die im Jahresblatt und zusätzlich im Stundenplan bzw. in feste_termine.json stehen,
     # nur einmal übernehmen (die ausführlichere Fassung aus Stundenplan/feste_termine gewinnt)
     # (gleicher Tag, gleiches Brevet, gleicher Ort und – falls angegeben – gleiches Modul; eine fehlende genaue Kursnummer wie NM0201 wird ergänzt)
+    # Passt ein Jahresblatt-Termin auf mehrere NB01-Kurse, wird nicht geraten: er bleibt stehen und kommt in den Bericht.
     def doppelt(e):
         if e['c'] != 'L' or e.get('src') != 'Kalender': return False
+        kand = []
         for f in ev + static:
             if f is e or f.get('c') != 'L' or f.get('src') == 'Kalender': continue
             if (f['d'], f.get('k'), f.get('o')) != (e['d'], e.get('k'), e.get('o')): continue
             if e.get('md') and f.get('md') and not set(e['md']) & set(f['md']): continue
-            if len((e.get('n') or '').replace('/', '')) > 4 and not f.get('n'): f['n'] = e['n']
-            return True
-        return False
+            kand.append(f)
+        if not kand: return False
+        kurse = sorted({f['_kurs'] for f in kand if f.get('_kurs')})
+        if len(kurse) > 1:
+            BUILD_HINWEISE.append(f"Termin aus dem Jahresblatt passt auf mehrere NB01-Kurse ({', '.join(kurse)}), "
+                                  f"deshalb einzeln übernommen: {e['d']} {e.get('v') or ''} {e['t']} ({e.get('o') or ''})")
+            return False
+        f = kand[0]
+        if len((e.get('n') or '').replace('/', '')) > 4 and not f.get('n'): f['n'] = e['n']
+        return True
     ev = [e for e in ev if not doppelt(e)]
+    # Name des NB01-Reiters in den Titel (nach den Korrekturen, damit deren Schlüssel gültig bleiben)
+    for e in ev:
+        if e.get('_kurs'):
+            e['t'] = re.sub(r'^Grundausbildung NB01\b[^–]*–', f"Grundausbildung {e['_kurs']} –", e['t'], count=1)
     out = []
     for e in ev + static:
         e = {k: v for k, v in e.items() if not k.startswith('_') and k != 'src'}
@@ -292,7 +308,7 @@ def main(argv=None):
     try: fehler_r, hinweise_r, reiter = pruefe_reiter(raw, heute) if not fehler0 else ([], [], [])
     except Exception as ex: fehler_r, hinweise_r, reiter = [f'Vollständigkeitsprüfung der Reiter fehlgeschlagen: {ex}'], [], []
     fehler = fehler0 + fehler_abs + fehler_r + fehler
-    hinweise += hinweise_abs + hinweise_r
+    hinweise += hinweise_abs + hinweise_r + BUILD_HINWEISE
     text = bericht(ev, alt, seen, erg, fehler, hinweise, heute, [e for e in annulliert if e['d'] >= heute], reiter)
     schreibe_atomar(os.path.join(ziel, 'tools', 'bericht.md') if os.path.isdir(os.path.join(ziel, 'tools')) else os.path.join(ziel, 'bericht.md'), text)
     print(text)

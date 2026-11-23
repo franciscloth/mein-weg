@@ -56,5 +56,21 @@ class Reiter(unittest.TestCase):
         b = self.bericht()
         self.assertIn('1 bewusst ausgelassen (EPAMU)', b); self.assertNotIn('Hinweise zur Prüfung', b)
 
+    def test_r8_zwei_nb01_kurse_mit_reitername(self):
+        nb2 = ['Datum\tAnfang\tEnde\tStunden\tSequenz\tModul\tType\tEinheit\th/H\tTitel\tOrt\tHauptausbilder',
+               'samedi 17 avril 2027\t09:00\t12:00\t03:00\t1\tModul 1\tTh\t01v07\t3v23\tEinleitung\tEupen\tAusbilder Muster']
+        t = mit_reiter(roh(basiszeilen()), nb2[0], nb2[1:], name='NB01 2027-2028')
+        self.assertEqual(self.lauf(t), 0)
+        titel = {e['t'] for e in self.termine() if e['c'] == 'L' and e.get('k') == 'NBO1'}
+        self.assertIn('Grundausbildung NB01 2026-2027 – Modul 6: SOP Material', titel)
+        self.assertIn('Grundausbildung NB01 2027-2028 – Modul 1: Einleitung', titel)
+
+    def test_r9_leerer_reiter(self):
+        t = roh(basiszeilen()) + '## Sheet: NB01 2027-2028 (empty)\n'
+        t = t.replace('Workbook: 2 worksheets.\n', 'Workbook: 3 worksheets.\nWorksheets (x):\n1. NB01 2026-2027\n2. 2026\n3. NB01 2027-2028\nThis read covers sheets 1–3.\n')
+        self.assertIn(self.lauf(t), (0, 3))
+        self.assertIn('NB01 2027-2028 (Stundenplan NB01): 0 Zeilen mit Datum', self.bericht())
+        self.assertNotIn('FEHLER', self.bericht())
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

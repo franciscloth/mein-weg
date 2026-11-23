@@ -4,7 +4,8 @@ und erzeugt daraus Rohtermine. Ausbildernamen werden nie übernommen.
 
 Verarbeitete Blätter:
   * Jahresblätter („2026“, „2027“ …): Übungen, Weiterbildungen, Laufbahnkurse mit Kursnummer
-  * Stundenpläne „NB01 JJJJ-JJJJ“: Grundausbildung mit Spalte „Modul“
+  * Stundenpläne „NB01 …“ (z. B. „NB01 2026-2027“, „NB01 2027-2028“; ein Reiter je Kurs): Grundausbildung mit Spalte „Modul“,
+    der Reitername steht im Titel („Grundausbildung NB01 2027-2028 – Modul …“)
 Andere Blätter (z. B. „NB02 - Korporal 2026“) werden nicht automatisch gelesen.
 """
 import re, sys, json, datetime
@@ -17,6 +18,12 @@ ORTE = {'sv':'Sankt Vith','sankt vith':'Sankt Vith','st.vith':'Sankt Vith','st. 
         'büllingen':'Büllingen','amel':'Amel','lontzen':'Lontzen','burg-reuland':'Burg-Reuland','br':'Burg-Reuland','amay':'Amay',
         'seraing':'Seraing','juribise':'Juribise','francochamps':'Francochamps','aywaille':'Aywaille','operationeller':'Sonderteam','/':'','-':''}
 POSTEN = ['Amel','Büllingen','Burg-Reuland','Eupen','Kelmis','Lontzen','Sankt Vith','Amay','Seraing','Andere']
+
+def ist_nb01(name):
+    """Stundenplan-Reiter eines NB01-Kurses, z. B. „NB01 2026-2027“, „NB01 2027-2028“ (mehrere Kurse parallel möglich)."""
+    n = name.strip()
+    jahre = [int(j) for j in re.findall(r'(?<!\d)(\d{4})(?!\d)', n)]
+    return bool(re.match(r'NB01\b', n)) and bool(jahre) and max(jahre) >= MIN_JAHR
 
 def datum(s):
     s = (s or '').strip()
@@ -51,7 +58,7 @@ def ort(s):
 def blaetter(text):
     out, name, rows = [], None, []
     for line in text.split('\n'):
-        m = re.match(r'^## Sheet: (.+?) — ', line)
+        m = re.match(r'^## Sheet: (.+?)(?: — | \(empty\)\s*$)', line)   # leerer Reiter: „## Sheet: NB01 2027-2028 (empty)“
         if m:
             if name: out.append((name, rows))
             name, rows = m.group(1), []
@@ -133,7 +140,7 @@ def jahresblatt(rows):
                        src='Kalender'))
     return ev
 
-def nb01blatt(rows):
+def nb01blatt(rows, kurs=''):
     """Stundenplan Grundausbildung: Spalten Datum, Anfang, Ende, Stunden, Sequenz, Modul, Type, Einheit, h/H, Titel, Ort."""
     raw = []
     for r in rows:
@@ -154,7 +161,7 @@ def nb01blatt(rows):
         titel = ', '.join(dict.fromkeys(x['titel'] for x in xs if x['titel']))
         mtxt = 'Module ' + ' + '.join(map(str, md)) if len(md) > 1 else f'Modul {md[0]}'
         ev.append(dict(d=d, c='L', k='NBO1', t=f'Grundausbildung NB01 – {mtxt}: {titel}'.rstrip(': '), o=o, v=v, b=b,
-                       h=None, x=False, n='', md=list(md), src='Stundenplan NB01'))
+                       h=None, x=False, n='', md=list(md), src='Stundenplan NB01', _kurs=kurs))
     return ev
 
 PFLICHTSPALTEN = ('datum', 'typ', 'name', 'anfang', 'ende')
@@ -173,8 +180,8 @@ def abdeckung(text, ausschluss=()):
     for name, rows in gelesen:
         n = name.strip()
         art = ('jahr' if re.fullmatch(r'\d{4}', n) and int(n) >= MIN_JAHR else
-               'nb01' if re.fullmatch(r'NB01 (\d{4})-(\d{4})', n) and int(n[-4:]) >= MIN_JAHR else
-               'alt' if re.fullmatch(r'\d{4}', n) or re.fullmatch(r'NB01 (\d{4})-(\d{4})', n) else 'unbekannt')
+               'nb01' if ist_nb01(n) else
+               'alt' if re.fullmatch(r'\d{4}', n) or re.match(r'NB01\b', n) else 'unbekannt')
         info = dict(name=n, art=art, zeilen=0, uebernommen=0, ausgelassen=[], spalten_fehlen=[])
         if art == 'jahr':
             hdr = None
@@ -211,8 +218,8 @@ def parse(text):
     for name, rows in blaetter(text):
         if re.fullmatch(r'\d{4}', name.strip()) and int(name) >= MIN_JAHR:
             ev += jahresblatt(rows); seen.append(name)
-        elif re.fullmatch(r'NB01 (\d{4})-(\d{4})', name.strip()) and int(name.strip()[-4:]) >= MIN_JAHR:
-            ev += nb01blatt(rows); seen.append(name)
+        elif ist_nb01(name):
+            ev += nb01blatt(rows, name.strip()); seen.append(name)
     return ev, seen
 
 if __name__ == '__main__':

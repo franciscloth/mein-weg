@@ -350,7 +350,7 @@ if(grade!==null&&!G.includes(grade)){grade=null;try{localStorage.removeItem('hlz
 function modName(k,m){const g=KG[k];if(!g)return '';const x=BREVET[g].mods[m-1];return x?x.n:''}
 function modTitle(k,m){const n=modName(k,m);return 'Modul '+m+(n?': '+n:'')}
 function modLabel(e){if(!e.md.length)return 'Modul noch nicht zugeordnet';if(e.md.length>1)return 'Module '+e.md.join(' + ');return modTitle(e.k,e.md[0])}
-function shortT(e){let t=e.t.replace(/^(Grundausbildung NB01|Korporal(?: \(BO2\))?|Sergeant \(NMO1\)|Adjutant \(NMO2\)|Leutnant \(NOFF1\))\s*[–-]\s*/,'');t=t.replace(/^Module?\s+\d+(\s*\+\s*\d+)?\s*[:,]?\s*/,'');return t||e.sq||'Termin'}
+function shortT(e){const kurs=(e.t.match(/^Grundausbildung (NB01 \S+)\s*[–-]/)||[])[1];let t=e.t.replace(/^(Grundausbildung NB01(?: \S+)?|Korporal(?: \(BO2\))?|Sergeant \(NMO1\)|Adjutant \(NMO2\)|Leutnant \(NOFF1\))\s*[–-]\s*/,'');t=t.replace(/^Module?\s+\d+(\s*\+\s*\d+)?\s*[:,]?\s*/,'');return (t||e.sq||'Termin')+(kurs?' · '+kurs:'')}
 
 // Kopieren und Meldungen
 function copyText(s){const ok=()=>toast('Kursnummer '+s+' kopiert');if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(s).then(ok,()=>legacyCopy(s)?ok():toast('Bitte Nummer abschreiben: '+s))}else{legacyCopy(s)?ok():toast('Bitte Nummer abschreiben: '+s)}}
