@@ -38,6 +38,19 @@ def build(raw):
     for e in ev:
         if e['_k'] in ov: e.update(ov[e['_k']])
     static = json.load(open(os.path.join(HERE, 'feste_termine.json'), encoding='utf-8'))
+    # Laufbahntermine, die im Jahresblatt und zusätzlich im Stundenplan bzw. in feste_termine.json stehen,
+    # nur einmal übernehmen (die ausführlichere Fassung aus Stundenplan/feste_termine gewinnt)
+    # (gleicher Tag, gleiches Brevet, gleicher Ort und – falls angegeben – gleiches Modul; eine fehlende genaue Kursnummer wie NM0201 wird ergänzt)
+    def doppelt(e):
+        if e['c'] != 'L' or e.get('src') != 'Kalender': return False
+        for f in ev + static:
+            if f is e or f.get('c') != 'L' or f.get('src') == 'Kalender': continue
+            if (f['d'], f.get('k'), f.get('o')) != (e['d'], e.get('k'), e.get('o')): continue
+            if e.get('md') and f.get('md') and not set(e['md']) & set(f['md']): continue
+            if len((e.get('n') or '').replace('/', '')) > 4 and not f.get('n'): f['n'] = e['n']
+            return True
+        return False
+    ev = [e for e in ev if not doppelt(e)]
     out = []
     for e in ev + static:
         e = {k: v for k, v in e.items() if not k.startswith('_') and k != 'src'}

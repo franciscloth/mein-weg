@@ -82,24 +82,38 @@ def kurs_info(code, name):
             md = list(range(a, b + 1)) if b >= a else [a]
     return k, md
 
+def spalten(hdr):
+    """Spaltennummern nach Überschrift. Die Jahresblätter sind unterschiedlich aufgebaut:
+    2026: Datum, Typ, NUMMER Übungszyklus, Name, Bemerkung (= Ort), Anfang, Ende, Pause, Anzahl Stunden, Posten-Spalten …
+    2027: Datum, FW-RD, Typ, Typ Bemerkung (= Kursnummer), Name, Ort, Anfang, Ende, Pause, Anzahl Stunden, …"""
+    h = [re.sub(r'\s+', ' ', x).strip().lower() for x in hdr]
+    def such(*namen, std=None):
+        for n in namen:
+            if n in h: return h.index(n)
+        return std
+    return dict(typ=such('typ', std=1), code=such('nummer übungszyklus', 'typ bemerkung', std=2),
+                name=such('name', std=3), ort=such('ort', 'bemerkung', std=4), anf=such('anfang', std=5),
+                ende=such('ende', std=6), pause=such('pause', std=7), std=such('anzahl stunden', std=8),
+                posten=[h.index(p.lower()) if p.lower() in h else None for p in POSTEN])
+
 def jahresblatt(rows):
-    ev, hdr = [], None
+    ev, hdr, sp = [], None, None
     for r in rows:
-        if r and r[0].strip() == 'Datum': hdr = [h.strip() for h in r]; continue
+        if r and r[0].strip() == 'Datum': hdr = [h.strip() for h in r]; sp = spalten(r); continue
         if not hdr: continue
         d = datum(r[0] if r else '')
         if not d: continue
-        g = lambda i: r[i].strip() if i < len(r) else ''
-        typ, code, name = g(1), g(2), re.sub(r'\s+', ' ', g(3)).strip()
+        g = lambda i: r[i].strip() if i is not None and i < len(r) else ''
+        typ, code, name = g(sp['typ']), g(sp['code']), re.sub(r'\s+', ' ', g(sp['name'])).strip()
         if not name: continue
         x = bool(re.search(r'zu bestätigen|à confirmer|\?\?', name, re.I))
         name = re.sub(r'!?\s*Termin zu bestätigen\s*!?', '', name, flags=re.I).strip()
         k, md = kurs_info(code, name)
         c = 'L' if k else ('U' if 'Übung' in typ else 'W' if 'Weiterbildung' in typ else '')
         if not c: continue
-        o = ort(g(4))
+        o = ort(g(sp['ort']))
         if not o:
-            posts = [POSTEN[i] for i in range(10) if g(9 + i).lower() == 'x']
+            posts = [POSTEN[i] for i, j in enumerate(sp['posten']) if g(j).lower() == 'x']
             if len(posts) == 1: o = posts[0]
         # Kursnummer nur für Kurse mit Anmeldung (Weiterbildung, Laufbahn); Übungen haben keine
         n = ''
@@ -110,10 +124,10 @@ def jahresblatt(rows):
             if k == 'NMO1' and md: n = 'NM01/' + '/'.join(f'{m:02d}' for m in md)
             pre = {'NMO1': 'Sergeant (NMO1) – ', 'NOFF1': 'Leutnant (NOFF1) – ', 'NMO2': 'Adjutant (NMO2) – '}.get(k, '')
             if pre and not re.match(r'(Sergeant|Leutnant|Adjutant|Korporal)', name): name = pre + name
-        v, b = zeit(g(5)), zeit(g(6))
-        h = stunden(g(8))
+        v, b = zeit(g(sp['anf'])), zeit(g(sp['ende']))
+        h = stunden(g(sp['std']))
         if not h and v and b:  # fehlende Stundenzahl: Ende − Anfang − Pause
-            p = stunden(g(7)) or 0
+            p = stunden(g(sp['pause'])) or 0
             h = round((int(b[:2]) * 60 + int(b[3:]) - int(v[:2]) * 60 - int(v[3:])) / 60 - p, 2) or None
         ev.append(dict(d=d, c=c, k=k or '', t=name, o=o, v=v, b=b, h=h, x=x, n=n, md=md,
                        src='Kalender'))
