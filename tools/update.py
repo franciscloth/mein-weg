@@ -10,7 +10,7 @@ import json, re, sys, os, datetime
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-from parse_kalender import parse, zeit
+from parse_kalender import parse, zeit, abdeckung
 
 AUSSCHLUSS_CODES = {'KADETTEN'}          # Jugend/Kadetten gehören nicht in die App
 BEKANNTE_ORTE = {'Amel','Büllingen','Burg-Reuland','Eupen','Kelmis','Lontzen','Sankt Vith','Amay','Seraing','Juribise',
@@ -199,10 +199,49 @@ def pruefen(ev, alt, seen, erg, alt_blaetter=None):
         if zaehl.get(inhalt(e), 0) > 1: hinweise.append(f"Mögliche Dublette (Zeile steht mehrfach in der Quelle): {e['d']} {e.get('v','')} {e['t']} ({e.get('o','')})")
     return fehler, hinweise
 
+# Zeilen dieser Typen werden bewusst (noch) nicht in die App übernommen; sie erscheinen nur in der Reiter-Übersicht
+BEWUSST_AUSGELASSEN = {'EPAMU': 'Rettungsdienst-Grundkurs – Übernahme noch nicht entschieden'}
+
+def pruefe_reiter(raw, heute):
+    """Vollständigkeit: alle Reiter der Datei gelesen, jeder Reiter ausgewertet, jede Zeile mit Datum zugeordnet."""
+    fehler, hinweise, ueb = [], [], []
+    info, liste, gekuerzt = abdeckung(raw, AUSSCHLUSS_CODES)
+    gelesen = [i['name'] for i in info]
+    for b in liste:
+        if b.strip() not in gelesen:
+            fehler.append(f"Reiter „{b}“ steht in der Datei, wurde aber nicht gelesen – alle Reiter lesen (endPage = Anzahl Reiter).")
+    for k in gekuerzt[:3]:
+        fehler.append(f"Kalenderdatei nur teilweise gelesen: „{k.strip()[:120]}“ – betroffenen Reiter einzeln nachlesen.")
+    for i in info:
+        art = {'jahr': 'Jahresblatt', 'nb01': 'Stundenplan NB01', 'alt': 'altes Jahr, nicht ausgewertet',
+               'unbekannt': 'NICHT AUSGEWERTET'}[i['art']]
+        bewusst = [a for a in i['ausgelassen'] if a[0] == 'Typ' and a[2] in BEWUSST_AUSGELASSEN]
+        aus = [a for a in i['ausgelassen'] if a[0] == 'ausgeschlossen']
+        offen = [a for a in i['ausgelassen'] if a not in bewusst and a not in aus]
+        teile = [f"{i['zeilen']} Zeilen mit Datum", f"{i['uebernommen']} übernommen"]
+        if aus: teile.append(f"{len(aus)} ausgeschlossen ({', '.join(sorted({a[2] for a in aus}))})")
+        if bewusst: teile.append(f"{len(bewusst)} bewusst ausgelassen ({', '.join(sorted({a[2] for a in bewusst}))})")
+        if offen: teile.append(f"{len(offen)} nicht zugeordnet")
+        ueb.append(f"- {i['name']} ({art}): " + ' · '.join(teile))
+        if i['spalten_fehlen']:
+            fehler.append(f"Reiter „{i['name']}“: Spalte(n) {', '.join(i['spalten_fehlen'])} nicht gefunden – Aufbau der Tabelle geändert. Nicht veröffentlicht.")
+        if i['art'] in ('jahr', 'nb01') and i['zeilen'] >= 5 and i['uebernommen'] < i['zeilen'] * 0.5:
+            fehler.append(f"Reiter „{i['name']}“: nur {i['uebernommen']} von {i['zeilen']} Zeilen übernommen – Aufbau der Tabelle geändert? Nicht veröffentlicht.")
+        if i['art'] == 'unbekannt' and i['zeilen']:
+            hinweise.append(f"Reiter „{i['name']}“ enthält {i['zeilen']} Zeilen mit Datum, wird aber nicht ausgewertet – Programm anpassen lassen.")
+        gruppen = {}
+        for a in offen:
+            if a[1] and a[1] >= heute: gruppen.setdefault((a[0], a[2]), []).append(a)
+        for (grund, typ), xs in gruppen.items():
+            was = {'Typ': f"mit Typ „{typ or 'leer'}“", 'ohne Titel': 'ohne Titel', 'ohne Modul': 'ohne Modul'}[grund]
+            bsp = '; '.join(f"{a[1]} {a[3]}".strip() for a in xs[:3])
+            hinweise.append(f"Reiter „{i['name']}“: {len(xs)} künftige Zeile(n) {was} nicht übernommen (z. B. {bsp}).")
+    return fehler, hinweise, ueb
+
 def zeile(e):
     return f"{e['d']} {e.get('v','') or ''} {e['t']} ({e.get('o','') or ''})".replace('  ', ' ')
 
-def bericht(ev, alt, seen, erg, fehler, hinweise, heute, annulliert=()):
+def bericht(ev, alt, seen, erg, fehler, hinweise, heute, annulliert=(), reiter=()):
     dub = sum(c - 1 for c in __import__('collections').Counter(inhalt(e) for e in ev).values() if c > 1)
     b = [f"# Abgleich Mein Weg – {heute}", f"Gelesene Blätter: {', '.join(seen) or '–'}",
          f"Termine: {len(ev)} (vorher {len(alt)}) · unverändert {erg['unveraendert']} · neu {len(erg['neu'])} · geändert {len(erg['geaendert'])} · entfallen {len(erg['entfallen'])} · mehrfach vorhandene Zeilen {dub}", '']
@@ -219,6 +258,7 @@ def bericht(ev, alt, seen, erg, fehler, hinweise, heute, annulliert=()):
         b += ['## Mehrdeutige Zuordnung (bitte prüfen)'] + [f"- {zeile(a)} → {len(k)} mögliche Termine: " + ' | '.join(zeile(x) for x in k) for a, k in erg['mehrdeutig']] + ['']
     if annulliert: b += ['## Als annulliert gekennzeichnet (aus Mails)'] + [f"- {zeile(e)}" + (f" – {e['ag']}" if e.get('ag') else '') for e in annulliert] + ['']
     if hinweise: b += ['## Hinweise zur Prüfung'] + [f'- {x}' for x in sorted(set(hinweise))] + ['']
+    if reiter: b += ['## Reiter der Tabelle (Vollständigkeit)'] + list(reiter) + ['']
     return '\n'.join(b)
 
 def schreibe_atomar(pfad, text):
@@ -249,9 +289,11 @@ def main(argv=None):
     hinweise_abs += h2
     erg = vergleiche(alt, ev)
     fehler, hinweise = pruefen(ev, alt, seen, erg, alt_blaetter)
-    fehler = fehler0 + fehler_abs + fehler
-    hinweise += hinweise_abs
-    text = bericht(ev, alt, seen, erg, fehler, hinweise, heute, [e for e in annulliert if e['d'] >= heute])
+    try: fehler_r, hinweise_r, reiter = pruefe_reiter(raw, heute) if not fehler0 else ([], [], [])
+    except Exception as ex: fehler_r, hinweise_r, reiter = [f'Vollständigkeitsprüfung der Reiter fehlgeschlagen: {ex}'], [], []
+    fehler = fehler0 + fehler_abs + fehler_r + fehler
+    hinweise += hinweise_abs + hinweise_r
+    text = bericht(ev, alt, seen, erg, fehler, hinweise, heute, [e for e in annulliert if e['d'] >= heute], reiter)
     schreibe_atomar(os.path.join(ziel, 'tools', 'bericht.md') if os.path.isdir(os.path.join(ziel, 'tools')) else os.path.join(ziel, 'bericht.md'), text)
     print(text)
     if fehler: return 2

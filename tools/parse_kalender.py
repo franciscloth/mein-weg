@@ -157,6 +157,55 @@ def nb01blatt(rows):
                        h=None, x=False, n='', md=list(md), src='Stundenplan NB01'))
     return ev
 
+PFLICHTSPALTEN = ('datum', 'typ', 'name', 'anfang', 'ende')
+
+def reiterliste(text):
+    """Reiter laut Kopfzeile des Connectors („Worksheets …: 1. 2027 / 2. 2026 …“)."""
+    m = re.search(r'^Worksheets[^\n]*\n((?:\d+\. [^\n]*\n?)+)', text, re.M)
+    return [re.sub(r'^\d+\. ', '', l).strip() for l in m.group(1).strip().split('\n')] if m else []
+
+def abdeckung(text, ausschluss=()):
+    """Vollständigkeitsprüfung: Welche Reiter enthält die Datei, welche wurden gelesen, und was ist aus jeder
+    Zeile mit Datum geworden? Rückgabe: Liste je Reiter mit art, zeilen (mit Datum), uebernommen,
+    ausgelassen [(grund, datum, typ, titel)], spalten_fehlen; dazu Reiterliste und Kürzungshinweise."""
+    gelesen = blaetter(text)
+    erg = []
+    for name, rows in gelesen:
+        n = name.strip()
+        art = ('jahr' if re.fullmatch(r'\d{4}', n) and int(n) >= MIN_JAHR else
+               'nb01' if re.fullmatch(r'NB01 (\d{4})-(\d{4})', n) and int(n[-4:]) >= MIN_JAHR else
+               'alt' if re.fullmatch(r'\d{4}', n) or re.fullmatch(r'NB01 (\d{4})-(\d{4})', n) else 'unbekannt')
+        info = dict(name=n, art=art, zeilen=0, uebernommen=0, ausgelassen=[], spalten_fehlen=[])
+        if art == 'jahr':
+            hdr = None
+            for r in rows:
+                if r and r[0].strip() == 'Datum':
+                    hdr = r
+                    h = [re.sub(r'\s+', ' ', x).strip().lower() for x in r]
+                    info['spalten_fehlen'] = [c for c in PFLICHTSPALTEN if c not in h]
+                    continue
+                if not hdr or not datum(r[0] if r else ''): continue
+                info['zeilen'] += 1
+                ev = jahresblatt([hdr, r])
+                sp = spalten(hdr); g = lambda i: r[i].strip() if i is not None and i < len(r) else ''
+                titel = re.sub(r'\s+', ' ', g(sp['name'])).strip()
+                if ev and (ev[0]['n'] or '').upper().replace(' ', '') in ausschluss:
+                    info['ausgelassen'].append(('ausgeschlossen', ev[0]['d'], ev[0]['n'], titel))
+                elif ev: info['uebernommen'] += 1
+                elif not titel: info['ausgelassen'].append(('ohne Titel', datum(r[0]), g(sp['typ']), ''))
+                else: info['ausgelassen'].append(('Typ', datum(r[0]), g(sp['typ']), titel))
+        else:
+            for r in rows:
+                g = lambda i: r[i].strip() if i < len(r) else ''
+                if not datum(g(0)): continue
+                info['zeilen'] += 1
+                if art == 'nb01':
+                    if re.match(r'Modul\s+(\d+)', g(5)): info['uebernommen'] += 1
+                    else: info['ausgelassen'].append(('ohne Modul', datum(g(0)), '', re.sub(r'\s+', ' ', g(9)).strip()))
+        erg.append(info)
+    gekuerzt = re.findall(r'[^\n]*(?:was cut partway|were not read|\[truncated)[^\n]*', text)
+    return erg, reiterliste(text), gekuerzt
+
 def parse(text):
     ev, seen = [], []
     for name, rows in blaetter(text):

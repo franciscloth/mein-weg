@@ -15,6 +15,9 @@
    - Exit 3: keine Änderung → Ende, nichts veröffentlichen.
    - Exit 2: Prüfung fehlgeschlagen (leere/beschädigte Quelle, fehlendes Blatt, starker Rückgang …) → nichts veröffentlichen, FEHLER aus `tools/bericht.md` melden. `termine.json` bleibt unverändert.
    - Exit 0: weiter.
+   - **Vollständigkeit aller Reiter** (läuft bei jedem Lauf): Jeder Reiter aus der Kopfzeile der Datei muss gelesen sein, kein Reiter darf gekürzt sein, und für jede Zeile mit Datum steht fest, was aus ihr geworden ist (übernommen, ausgeschlossen, bewusst ausgelassen oder nicht zugeordnet). Die Übersicht steht in `tools/bericht.md` unter „Reiter der Tabelle (Vollständigkeit)“.
+     Fehlt ein Reiter, ist er gekürzt, fehlt eine Pflichtspalte (Datum, Typ, Name, Anfang, Ende) oder wird aus einem Jahresblatt/Stundenplan weniger als die Hälfte der Zeilen übernommen → FEHLER (Exit 2). Ein unbekannter Reiter mit Terminen oder künftige Zeilen mit unbekanntem Typ → Hinweis (wird gemeldet).
+     Bewusst ausgelassene Typen stehen in `BEWUSST_AUSGELASSEN` in `tools/update.py` (zurzeit EPAMU, Entscheidung offen).
 5. `python3 tools/build_index.py` (schreibt index.html atomar, gleiche Termine und gleicher Datenstand wie termine.json).
 6. `python3 tools/pruefe_veroeffentlichung.py tools/raw.txt` – prüft: JSON = eingebaute Rückfallkopie, Datenstand gleich, Skript fehlerfrei, keine Platzhalter, keine fremden Mailadressen oder Telefonnummern, kein Name aus den Ausbilderspalten, keine Rohdaten im Repository.
    Schlägt sie fehl: `git checkout -- termine.json index.html`, nichts veröffentlichen, melden.
@@ -45,4 +48,7 @@ Die Ausbildungszelle sagt Kurse oft nur per Mail ab; in der Tabelle sind sie dan
 | „Mehrdeutige Zuordnung“ | Zwei Termine passen gleich gut | Bericht ansehen; Daten sind veröffentlicht, nur die Einordnung im Bericht ist unsicher |
 | „Mögliche Dublette“ | Zeile steht mehrfach in der Quelle | In der Kalenderdatei klären (zweite Gruppe oder Versehen) |
 | „Absage aus Mail ohne passenden Termin“ / „passt auf N Termine“ | Absage in `absagen.json` lässt sich nicht eindeutig zuordnen | Eintrag in `absagen.json` genauer machen (Uhrzeit, Kursnummer) |
+| „Reiter … steht in der Datei, wurde aber nicht gelesen“, „nur teilweise gelesen“ | Nicht alle Reiter bzw. nicht vollständig gelesen | Alle Reiter lesen (endPage = Anzahl Reiter), gekürzten Reiter einzeln nachlesen |
+| „Spalte(n) … nicht gefunden“, „nur X von Y Zeilen übernommen“ | Aufbau eines Reiters geändert (z. B. neue Spalte wie „FW-RD“ im Blatt 2027) | Programm (`tools/parse_kalender.py`) anpassen lassen, bis dahin nichts veröffentlichen |
+| „Reiter … wird nicht ausgewertet“, „künftige Zeile(n) mit Typ … nicht übernommen“ | Neuer Reiter oder neuer Typ in der Tabelle | Entscheiden: übernehmen (Programm anpassen) oder in `BEWUSST_AUSGELASSEN` eintragen |
 | Prüfung konnte nicht laufen | Microsoft-365-Zugang nicht verfügbar | App bleibt auf dem letzten Stand; nächsten Lauf abwarten |
